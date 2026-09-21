@@ -6,12 +6,6 @@
 
 void setup() {
   Serial.begin(115200);
-  while(!Serial) {
-    delay(10);
-  }
-
-  Serial.println("Starting IMU Initialization...");
-  
   Wire.begin();
 
   if(IMU_Init() == false) {

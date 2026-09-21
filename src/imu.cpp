@@ -1,6 +1,7 @@
 #include "imu.h"
 #include <Arduino.h>
 #include <SparkFun_BNO08x_Arduino_Library.h>
+#include <math.h>
 
 #define IMU_RST       5
 #define IMU_INT       6
@@ -42,6 +43,26 @@ void IMU_Update() {
             float quatReal = imu.getQuatReal();
             float quatAccuracy = imu.getQuatRadianAccuracy();
 
+            float roll = atan2(
+                2.0 * (quatReal * quatI + quatJ * quatK),
+                1.0 - 2.0 * (quatI * quatI + quatJ * quatJ)
+            );
+
+            roll = roll * 180.0 / PI;
+
+            float pitch = asin(2.0 * (quatReal * quatJ - quatK * quatI));
+            pitch = pitch * 180.0 / PI;
+
+            float yaw = atan2(
+                2.0 * (quatReal * quatK + quatI * quatJ),
+                1.0 - 2.0 * (quatJ * quatJ + quatK * quatK)
+            );
+
+            yaw = yaw * 180.0 / PI;
+            if(yaw < 0) {
+                yaw += 360.0;
+            }
+
             static unsigned long lastPrint = 0;
 
             if(millis() - lastPrint >= 500) {
@@ -55,6 +76,13 @@ void IMU_Update() {
                 Serial.print(quatReal, 3);
                 Serial.print(" Accuracy: ");
                 Serial.println(quatAccuracy, 3);
+
+                Serial.print(" Roll: ");
+                Serial.print(roll, 1);
+                Serial.print(" Pitch: ");
+                Serial.print(pitch, 1);
+                Serial.print(" Yaw: ");
+                Serial.println(yaw, 1);
 
                 lastPrint = millis();
             }
