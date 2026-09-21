@@ -8,6 +8,8 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
 
+  Serial.println("Starting IMU Initialization...");
+
   if(IMU_Init() == false) {
     Serial.println("IMU Initialization Failed");
     return;
