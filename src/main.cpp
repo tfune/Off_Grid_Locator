@@ -1,23 +1,15 @@
 #include <Arduino.h>
 #include <Adafruit_TinyUSB.h>
-#include <Wire.h>
+#include "device.h"
+
+
 
 #include "imu.h"
 
 void setup() {
-  Serial.begin(115200);
-  Wire.begin();
-
-  Serial.println("Starting IMU Initialization...");
-
-  if(IMU_Init() == false) {
-    Serial.println("IMU Initialization Failed");
-    return;
-  }
-
-  Serial.println("IMU Initialization Successful");
+  Device_Init();
 }
 
 void loop() {
-  IMU_Update();
+  Device_Update();
 }

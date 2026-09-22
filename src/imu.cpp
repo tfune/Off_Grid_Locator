@@ -9,6 +9,7 @@
 
 BNO08x imu;
 static float heading = 0.0;
+static float accuracy = 0.0;
 
 void setReports()
 {
@@ -53,6 +54,8 @@ void IMU_Update() {
             if(heading < 0) {
                 heading += 360.0;
             }
+
+            accuracy = imu.getQuatRadianAccuracy();
         }
     }
 
@@ -63,4 +66,8 @@ void IMU_Update() {
 
 float IMU_GetHeading() {
     return heading;
+}
+
+float IMU_GetAccuracy() {
+    return accuracy;
 }
