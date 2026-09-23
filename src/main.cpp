@@ -7,9 +7,9 @@
 #include "imu.h"
 
 void setup() {
-  Device_Init();
+  deviceInit();
 }
 
 void loop() {
-  Device_Update();
+  deviceUpdate();
 }

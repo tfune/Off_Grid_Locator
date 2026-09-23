@@ -25,7 +25,7 @@ void setReports()
     }
 }
 
-bool IMU_Init() {
+bool imuInit() {
     if(imu.begin(IMU_ADDRESS, Wire, IMU_INT, IMU_RST) == false) {
         return false;
     }
@@ -35,7 +35,7 @@ bool IMU_Init() {
     return true;
 }
 
-void IMU_Update() {
+void imuUpdate() {
     if(imu.getSensorEvent() == true) {
         if(imu.getSensorEventID() == SENSOR_REPORTID_ROTATION_VECTOR) {
             float quatI = imu.getQuatI();
@@ -64,10 +64,10 @@ void IMU_Update() {
     }
 }
 
-float IMU_GetHeading() {
+float imuGetHeading() {
     return heading;
 }
 
-float IMU_GetAccuracy() {
+float imuGetAccuracy() {
     return accuracy;
 }

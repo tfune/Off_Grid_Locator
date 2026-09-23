@@ -1,7 +1,7 @@
 #pragma once
 
-bool IMU_Init();
-void IMU_Update();
+bool imuInit();
+void imuUpdate();
 
-float IMU_GetHeading();
-float IMU_GetAccuracy();
+float imuGetHeading();
+float imuGetAccuracy();

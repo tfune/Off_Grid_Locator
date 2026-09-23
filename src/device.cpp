@@ -5,24 +5,24 @@
 
 static bool imuInitialized = false;
 
-void Device_Init() {
+void deviceInit() {
     Serial.begin(115200);
     Wire.begin();
 
     Serial.println("Starting IMU Initialization...");
 
-    imuInitialized = IMU_Init();
+    imuInitialized = imuInit();
 
     if(imuInitialized == false) {
-    Serial.println("IMU Initialization Failed");
-    return;
+        Serial.println("IMU Initialization Failed");
+        return;
     }
 
     Serial.println("IMU Initialization Successful");
 }
 
-void Device_Update() {
+void deviceUpdate() {
     if(imuInitialized) {
-        IMU_Update();
+        imuUpdate();
     }
 }
