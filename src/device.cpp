@@ -3,13 +3,17 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+static bool imuInitialized = false;
+
 void Device_Init() {
     Serial.begin(115200);
     Wire.begin();
 
     Serial.println("Starting IMU Initialization...");
 
-    if(IMU_Init() == false) {
+    imuInitialized = IMU_Init();
+
+    if(imuInitialized == false) {
     Serial.println("IMU Initialization Failed");
     return;
     }
@@ -18,5 +22,7 @@ void Device_Init() {
 }
 
 void Device_Update() {
-    IMU_Update();
+    if(imuInitialized) {
+        IMU_Update();
+    }
 }
