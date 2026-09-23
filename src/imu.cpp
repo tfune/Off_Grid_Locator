@@ -7,22 +7,20 @@
 #define IMU_INT       6
 #define IMU_ADDRESS   0x4B
 
-BNO08x imu;
+static BNO08x imu;
 static float heading = 0.0;
 static float accuracy = 0.0;
 
-void setReports()
+static bool setReports()
 {
-    Serial.println("Setting reports...");
-
     if (imu.enableRotationVector())
     {
         Serial.println("Rotation vector enabled");
+        return true;
     }
-    else
-    {
-        Serial.println("Unable to enable rotation vector");
-    }
+    
+    Serial.println("Unable to enable rotation vector");
+    return false;
 }
 
 bool imuInit() {
@@ -30,7 +28,9 @@ bool imuInit() {
         return false;
     }
 
-    setReports();
+    if(setReports() == false) {
+        return false;
+    }
 
     return true;
 }
@@ -60,7 +60,9 @@ void imuUpdate() {
     }
 
     if(imu.wasReset()) {
-        setReports();
+        if(setReports() == false) {
+            Serial.println("Unable to restore rotation vector after IMU reset");
+        }
     }
 }
 
