@@ -44,3 +44,25 @@ void displayStartup() {
 
     display.display();
 }
+
+void displayMemberList() {
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SH110X_WHITE);
+
+    display.setCursor(28, 3);
+    display.print("SELECT MEMBER");
+
+    display.drawLine(10, 13, 117, 13, SH110X_WHITE);
+
+    display.setCursor(10, 18);
+    display.print("> Sebastian");
+
+    display.setCursor(10, 28);
+    display.print("  Professor Salemi");
+
+    display.setCursor(10, 48);
+    display.print("Press to Select");
+
+    display.display();
+}

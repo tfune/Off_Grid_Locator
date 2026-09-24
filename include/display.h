@@ -2,3 +2,4 @@
 
 bool displayInit();
 void displayStartup();
+void displayMemberList();

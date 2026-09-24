@@ -17,14 +17,14 @@ void deviceInit() {
 
     Wire.begin();
 
-    gpsInit();
-
     if(!displayInit()) {
         Serial.println("Display Initialization Failed");
         return;
     }
 
     Serial.println("Display Initialization Successful");
+
+    gpsInit();
 
     imuInitialized = imuInit();
 
