@@ -6,14 +6,14 @@
 static Adafruit_GPS gps(&Serial1);
 static GPSData currentGPS;
 
-void gps_init()
+void gpsInit()
 {
     gps.begin(9600);
     gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
     gps.sendCommand(PMTK_SET_NMEA_UPDATE_2HZ);
 }
 
-void gps_update()
+void gpsUpdate()
 {
     gps.read();
 
@@ -40,7 +40,7 @@ void gps_update()
     }
 }
 
-GPSData gps_get_data()
+GPSData gpsGetData()
 {
     return currentGPS;
 }

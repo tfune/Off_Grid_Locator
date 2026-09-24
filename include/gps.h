@@ -7,6 +7,6 @@ struct GPSData {
     int time;
 };
 
-void gps_init();
-void gps_update();
-GPSData gps_get_data();
+void gpsInit();
+void gpsUpdate();
+GPSData gpsGetData();
