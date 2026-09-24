@@ -4,6 +4,7 @@
 #include <Wire.h>
 
 static bool imuInitialized = false;
+static unsigned long lastPrint = 0;
 
 void deviceInit() {
     Serial.begin(115200);
