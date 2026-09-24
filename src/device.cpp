@@ -1,5 +1,6 @@
 #include "device.h"
 #include "imu.h"
+#include "gps.h"
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -8,6 +9,8 @@ static bool imuInitialized = false;
 void deviceInit() {
     Serial.begin(115200);
     Wire.begin();
+
+    gpsInit();
 
     Serial.println("Starting IMU Initialization...");
 
@@ -22,6 +25,9 @@ void deviceInit() {
 }
 
 void deviceUpdate() {
+
+    gpsUpdate();
+    
     if(imuInitialized) {
         imuUpdate();
     }
