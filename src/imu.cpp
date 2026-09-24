@@ -11,16 +11,14 @@ static BNO08x imu;
 static float heading = 0.0;
 static float accuracy = 0.0;
 
-static bool setReports()
+static void setReports()
 {
     if (imu.enableRotationVector())
     {
         Serial.println("Rotation vector enabled");
-        return true;
     }
     
     Serial.println("Unable to enable rotation vector");
-    return false;
 }
 
 bool imuInit() {
@@ -28,9 +26,7 @@ bool imuInit() {
         return false;
     }
 
-    if(setReports() == false) {
-        return false;
-    }
+    setReports();
 
     return true;
 }
@@ -60,9 +56,7 @@ void imuUpdate() {
     }
 
     if(imu.wasReset()) {
-        if(setReports() == false) {
-            Serial.println("Unable to restore rotation vector after IMU reset");
-        }
+        setReports();
     }
 }
 
