@@ -17,7 +17,7 @@ void deviceInit() {
 
     imuInitialized = imuInit();
 
-    if(imuInitialized == false) {
+    if(!imuInitialized) {
         Serial.println("IMU Initialization Failed");
         return;
     }
@@ -26,10 +26,34 @@ void deviceInit() {
 }
 
 void deviceUpdate() {
-
     gpsUpdate();
+    GPSData gpsData = gpsGetData();
     
     if(imuInitialized) {
         imuUpdate();
+    }
+
+    if(millis() - lastPrint >= 1000) {
+        if(imuInitialized) {
+            Serial.print("Heading: ");
+            Serial.println(imuGetHeading(), 1);
+
+            Serial.print("IMU Accuracy: ");
+            Serial.println(imuGetAccuracy(), 1);
+        }
+
+        Serial.print("GPS Fix: ");
+        Serial.println(gpsData.fix ? "Yes" : "No");
+
+        Serial.print("Latitude: ");
+        Serial.println(gpsData.latitude, 6);
+
+        Serial.print("Longitude: ");
+        Serial.println(gpsData.longitude, 6);
+
+        Serial.print("Time: ");
+        Serial.println(gpsData.time);
+
+        lastPrint = millis();
     }
 }
