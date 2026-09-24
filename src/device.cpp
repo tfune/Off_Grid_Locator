@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include "device.h"
 #include "imu.h"
+#include "gps.h"
 #include "display.h"
 
 static bool imuInitialized = false;
@@ -15,6 +16,8 @@ void deviceInit() {
     }
 
     Wire.begin();
+
+    gpsInit();
 
     if(!displayInit()) {
         Serial.println("Display Initialization Failed");
@@ -36,6 +39,8 @@ void deviceInit() {
 }
 
 void deviceUpdate() {
+    gpsUpdate();
+    
     if(imuInitialized) {
         imuUpdate();
 
