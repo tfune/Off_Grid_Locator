@@ -1,9 +1,15 @@
 #include <Arduino.h>
+#include <Adafruit_TinyUSB.h>
+#include "device.h"
+
+
+
+#include "imu.h"
 
 void setup() {
-  // put your setup code here, to run once:
+  deviceInit();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  deviceUpdate();
 }
