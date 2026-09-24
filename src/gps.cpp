@@ -15,28 +15,32 @@ void gpsInit()
 
 void gpsUpdate()
 {
-    gps.read();
+    while (gps.available() > 0) {
+        gps.read();
 
-    if (!gps.newNMEAreceived()) {
-        return;
-    }
+        if (!gps.newNMEAreceived()) {
+            continue;
+        }
 
-    char* sentence = gps.lastNMEA();
+        char* sentence = gps.lastNMEA();
 
-    if (strncmp(sentence, "$GNRMC,", 7) != 0) {
-        return;
-    }
+        if (strncmp(sentence, "$GNRMC,", 7) != 0 &&
+            strncmp(sentence, "$GPRMC,", 7) != 0) {
+            continue;
+        }
 
-    if(!gps.parse(sentence)) {
-        return;
-    }
+        if (!gps.parse(sentence)) {
+            continue;
+        }
 
-    currentGPS.fix = gps.fix;
+        currentGPS.fix = gps.fix;
 
-    if (currentGPS.fix) {
-        currentGPS.latitude = gps.latitudeDegrees;
-        currentGPS.longitude = gps.longitudeDegrees;
-        currentGPS.time = gps.hour * 10000 + gps.minute * 100 + gps.seconds;
+        if (currentGPS.fix) {
+            currentGPS.latitude = gps.latitudeDegrees;
+            currentGPS.longitude = gps.longitudeDegrees;
+            currentGPS.time =
+                gps.hour * 10000 + gps.minute * 100 + gps.seconds;
+        }
     }
 }
 

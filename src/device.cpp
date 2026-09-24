@@ -40,9 +40,7 @@ void deviceUpdate() {
 
             Serial.print("IMU Accuracy: ");
             Serial.println(imuGetAccuracy(), 1);
-        }
-
-        Serial.print("GPS Fix: ");
+                    Serial.print("GPS Fix: ");
         Serial.println(gpsData.fix ? "Yes" : "No");
 
         Serial.print("Latitude: ");
@@ -53,7 +51,10 @@ void deviceUpdate() {
 
         Serial.print("Time: ");
         Serial.println(gpsData.time);
-
+        Serial.println("-------------------------");
         lastPrint = millis();
+        }
+
+
     }
 }
