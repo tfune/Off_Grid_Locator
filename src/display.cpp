@@ -10,14 +10,9 @@ constexpr int DISPLAY_ADDRESS = 0x3C;
 
 static Adafruit_SH1106G display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
 
-bool displayInit() {
-    if(!display.begin(DISPLAY_ADDRESS)) {
-        return false;
-    }
-
+void displayInit() {
+    display.begin(DISPLAY_ADDRESS);
     display.clearDisplay();
-
-    return true;
 }
 
 void displayStartup() {
