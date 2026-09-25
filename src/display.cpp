@@ -70,14 +70,14 @@ bool displayInit() {
     }
 
     display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SH110X_WHITE);
 
     return true;
 }
 
 void displayStartup() {
     display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(SH110X_WHITE);
 
     display.setCursor(40, 4);
     display.print("OFF-GRID");
@@ -101,8 +101,6 @@ void displayStartup() {
 
 void displayMemberList() {
     display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(SH110X_WHITE);
 
     display.setCursor(0, 0);
     display.print("SELECT MEMBER");
@@ -120,8 +118,6 @@ void displayMemberList() {
 
 void displayTracking(float distance, float direction) {
     display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(SH110X_WHITE);
 
     display.setCursor(0, 0);
     display.print("SEBASTIAN");
@@ -146,6 +142,40 @@ void displayTracking(float distance, float direction) {
 
     display.setCursor(92, 52);
     display.print(getCardinalDirection(direction));
+
+    display.display();
+}
+
+void displayLocationUnavailable() {
+    display.clearDisplay();
+
+    display.setCursor(0, 0);
+    display.print("ERROR");
+
+    display.drawLine(0, 10, 127, 10, SH110X_WHITE);
+
+    display.setCursor(0, 18);
+    display.print("Location unavailable");
+
+    display.setCursor(0, 38);
+    display.print("Waiting for update...");
+
+    display.display();
+}
+
+void displayInitializationError() {
+    display.clearDisplay();
+
+    display.setCursor(0, 0);
+    display.print("ERROR");
+
+    display.drawLine(0, 10, 127, 10, SH110X_WHITE);
+
+    display.setCursor(0, 18);
+    display.print("Initialization failed");
+
+    display.setCursor(0, 38);
+    display.print("Reset device to retry");
 
     display.display();
 }
