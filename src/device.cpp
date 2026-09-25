@@ -4,23 +4,25 @@
 #include "gps.h"
 #include "display.h"
 
+static bool displayInitialized = false;
 static bool imuInitialized = false;
 
 void deviceInit() {
     Serial.begin(115200);
     Wire.begin();
 
-    displayInit();
+    displayInitialized = displayInit();
     gpsInit();
     imuInitialized = imuInit();
 
-    displayStartup();
+    if(displayInitialized) {
+        displayStartup();
+    }
 }
 
 void deviceUpdate() {
-    gpsUpdate();
-    
-    if(imuInitialized) {
+    if(displayInitialized && imuInitialized) {
+        gpsUpdate();
         imuUpdate();
     }
 }

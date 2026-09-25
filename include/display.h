@@ -1,5 +1,5 @@
 #pragma once
 
-void displayInit();
+bool displayInit();
 void displayStartup();
 void displayMemberList();
