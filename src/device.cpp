@@ -1,34 +1,28 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include "device.h"
 #include "imu.h"
 #include "gps.h"
+#include "display.h"
 
+static bool displayInitialized = false;
 static bool imuInitialized = false;
-static unsigned long lastPrint = 0;
 
 void deviceInit() {
     Serial.begin(115200);
     Wire.begin();
 
+    displayInitialized = displayInit();
     gpsInit();
     imuInitialized = imuInit();
+
+    if(displayInitialized) {
+        displayStartup();
+    }
 }
 
 void deviceUpdate() {
-    gpsUpdate();
-    
-    if(imuInitialized) {
+    if(displayInitialized && imuInitialized) {
+        gpsUpdate();
         imuUpdate();
-    }
-
-    if(millis() - lastPrint >= 1000) {
-        if(imuInitialized) {
-            Serial.print("Heading: ");
-            Serial.println(imuGetHeading(), 1);
-
-            Serial.print("IMU Accuracy: ");
-            Serial.println(imuGetAccuracy(), 1);
-        }
     }
 }
