@@ -2,3 +2,6 @@
 
 void inputInit();
 void inputUpdate();
+
+int getRotation();
+bool getButtonPress();

@@ -10,7 +10,10 @@ constexpr unsigned long DEBOUNCE_TIME = 50;
 static volatile int previousEncoderState = 0;
 static volatile int encoderMovement = 0;
 
+static int rotation = 0;
+
 static bool previousButtonState = HIGH;
+static bool buttonPress = false;
 static unsigned long lastButtonPress = 0;
 
 static const int transitionTable[16] {
@@ -50,12 +53,12 @@ void inputInit() {
 
 void inputUpdate() {
     if(encoderMovement >= 4) {
-        Serial.println("Clockwise");
-        encoderMovement = 0;
+        rotation++;
+        encoderMovement -= 4;
     }
     else if(encoderMovement <= -4) {
-        Serial.println("Counterclockwise");
-        encoderMovement = 0;
+        rotation--;
+        encoderMovement += 4;
     }
 
     bool buttonState = digitalRead(ENCODER_SW);
@@ -64,9 +67,25 @@ void inputUpdate() {
         previousButtonState == HIGH &&
         millis() - lastButtonPress >= DEBOUNCE_TIME) {
 
-        Serial.println("Button Pressed");
+        buttonPress = true;
         lastButtonPress = millis();
     }
 
     previousButtonState = buttonState;
+}
+
+int getRotation() {
+    int value = rotation;
+    rotation = 0;
+
+    return value;
+}
+
+bool getButtonPress() {
+    if(buttonPress) {
+        buttonPress = false;
+        return true;
+    }
+
+    return false;
 }
