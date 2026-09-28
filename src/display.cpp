@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SH110x.h>
+#include <Adafruit_SH110X.h>
 
 #include "display.h"
 
@@ -54,7 +54,7 @@ static const char* getCardinalDirection(float angle) {
         return "S";
     }
     else if(angle < 247.5) {
-        return "SE";
+        return "SW";
     }
     else if(angle < 292.5) {
         return "W";
