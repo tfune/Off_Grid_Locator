@@ -2,7 +2,7 @@
 
 bool displayInit();
 void displayStartup();
-void displayMemberList();
+void displayMemberList(int selectedMember);
 void displayTracking(float distance, float direction);
 void displayLocationUnavailable();
 void displayInitializationError();

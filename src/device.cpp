@@ -4,14 +4,21 @@
 #include "imu.h"
 #include "gps.h"
 #include "display.h"
+#include "input.h"
 
 static bool displayInitialized = false;
 static bool imuInitialized = false;
 
-static unsigned long lastPrint = 0;
-static unsigned long lastScreenUpdate = 0;
+enum Screen {
+    STARTUP,
+    MEMBER_LIST,
+    TRACKING
+};
 
-static int screen = 0;
+static Screen currentScreen = STARTUP;
+static int currentMember = 0;
+
+static unsigned long lastPrint = 0;
 
 void deviceInit() {
     Serial.begin(115200);
@@ -27,12 +34,7 @@ void deviceInit() {
     displayInitialized = displayInit();
     gpsInit();
     imuInitialized = imuInit();
-
-    Serial.print("Display Initialization: ");
-    Serial.println(displayInitialized ? "Successful" : "Failed");
-
-    Serial.print("IMU Initialization: ");
-    Serial.println(imuInitialized ? "Successful" : "Failed");
+    inputInit();
 
     if(displayInitialized) {
         displayStartup();
@@ -41,12 +43,52 @@ void deviceInit() {
 
 void deviceUpdate() {
     gpsUpdate();
+    GPSData gpsData = gpsGetData();
 
     if(imuInitialized) {
         imuUpdate();
     }
 
-    GPSData gpsData = gpsGetData();
+    inputUpdate();
+
+    int rotation = getRotation();
+    bool buttonPress = getButtonPress();
+
+    if(displayInitialized) {
+        switch(currentScreen) {
+            case STARTUP:
+                if(buttonPress) {
+                    currentScreen = MEMBER_LIST;
+                    displayMemberList(currentMember);
+                }
+                break;
+
+            case MEMBER_LIST:
+                if(rotation > 0) {
+                    currentMember = 1;
+                    displayMemberList(currentMember);
+                }
+                else if(rotation < 0) {
+                    currentMember = 0;
+                    displayMemberList(currentMember);
+                }
+
+                if(buttonPress) {
+                    currentScreen = TRACKING;
+                    displayTracking(150.0, 45.0);
+                }
+
+                break;
+
+            case TRACKING:
+                if(buttonPress) {
+                    currentScreen = MEMBER_LIST;
+                    displayMemberList(currentMember);
+                }
+                
+                break;
+        }
+    }
 
     if(millis() - lastPrint >= 1000) {
         if(imuInitialized) {
@@ -72,37 +114,5 @@ void deviceUpdate() {
         Serial.println("-------------------------");
 
         lastPrint = millis();
-    }
-
-    if(displayInitialized && millis() - lastScreenUpdate >= 3000) {
-        lastScreenUpdate = millis();
-
-        switch(screen) {
-            case 0:
-                displayStartup();
-                break;
-
-            case 1:
-                displayMemberList();
-                break;
-
-            case 2:
-                displayTracking(125.0, 225.0);
-                break;
-
-            case 3:
-                displayLocationUnavailable();
-                break;
-
-            case 4:
-                displayInitializationError();
-                break;
-        }
-
-        screen++;
-
-        if(screen >= 5) {
-            screen = 0;
-        }
     }
 }
