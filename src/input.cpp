@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "input.h"
 
-constexpr int ENCODER_CLK = A0;
+constexpr int ENCODER_SW = A0;
 constexpr int ENCODER_DT = A1;
-constexpr int ENCODER_SW = A2;
+constexpr int ENCODER_CLK = A2;
 
 constexpr unsigned long DEBOUNCE_TIME = 50;
 
