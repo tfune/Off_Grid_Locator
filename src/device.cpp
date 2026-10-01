@@ -3,6 +3,7 @@
 #include "imu.h"
 #include "gps.h"
 #include "display.h"
+#include "input.h"
 
 static bool displayInitialized = false;
 static bool imuInitialized = false;
@@ -14,6 +15,7 @@ void deviceInit() {
     displayInitialized = displayInit();
     gpsInit();
     imuInitialized = imuInit();
+    inputInit();
 
     if(displayInitialized) {
         displayStartup();
@@ -24,5 +26,6 @@ void deviceUpdate() {
     if(displayInitialized && imuInitialized) {
         gpsUpdate();
         imuUpdate();
+        inputUpdate();
     }
 }
