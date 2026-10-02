@@ -99,7 +99,7 @@ void displayStartup() {
     display.display();
 }
 
-void displayMemberList() {
+void displayMemberList(Member selectedMember) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
@@ -108,19 +108,34 @@ void displayMemberList() {
     display.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
     display.setCursor(0, 16);
-    display.print("> Sebastian");
+    if(selectedMember == SEBASTIAN) {
+        display.print("> Sebastian");
+    }
+    else {
+        display.print("  Sebastian");
+    }
 
     display.setCursor(0, 28);
-    display.print("  Professor Salemi");
+    if(selectedMember == PROFESSOR_SALEMI) {
+        display.print("> Professor Salemi");
+    }
+    else {
+        display.print("  Professor Salemi");
+    }
 
     display.display();
 }
 
-void displayTracking(float distance, float direction) {
+void displayTracking(Member selectedMember, float distance, float direction) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
-    display.print("SEBASTIAN");
+    if(selectedMember == SEBASTIAN) {
+        display.print("SEBASTIAN");
+    }
+    else {
+        display.print("PROFESSOR SALEMI");
+    }
 
     display.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
