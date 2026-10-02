@@ -18,8 +18,6 @@ enum Screen {
 static Screen currentScreen = STARTUP;
 static Member currentMember = SEBASTIAN;
 
-static unsigned long lastPrint = 0;
-
 void deviceInit() {
     Serial.begin(115200);
     Wire.begin();
