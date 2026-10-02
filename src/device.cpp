@@ -60,7 +60,7 @@ void deviceUpdate() {
 
                 if(buttonPress) {
                     currentScreen = TRACKING;
-                    displayTracking(150.0, 45.0);
+                    displayTracking(currentMember, 150.0, 45.0);
                 }
 
                 break;

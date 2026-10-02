@@ -126,11 +126,16 @@ void displayMemberList(int selectedMember) {
     display.display();
 }
 
-void displayTracking(float distance, float direction) {
+void displayTracking(int selectedMember, float distance, float direction) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
-    display.print("SEBASTIAN");
+    if(selectedMember == 0) {
+        display.print("SEBASTIAN");
+    }
+    else {
+        display.print("PROFESSOR SALEMI");
+    }
 
     display.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
