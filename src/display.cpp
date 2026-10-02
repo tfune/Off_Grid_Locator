@@ -99,7 +99,7 @@ void displayStartup() {
     display.display();
 }
 
-void displayMemberList(int selectedMember) {
+void displayMemberList(Member selectedMember) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
@@ -108,7 +108,7 @@ void displayMemberList(int selectedMember) {
     display.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
     display.setCursor(0, 16);
-    if(selectedMember == 0) {
+    if(selectedMember == SEBASTIAN) {
         display.print("> Sebastian");
     }
     else {
@@ -116,7 +116,7 @@ void displayMemberList(int selectedMember) {
     }
 
     display.setCursor(0, 28);
-    if(selectedMember == 1) {
+    if(selectedMember == PROFESSOR_SALEMI) {
         display.print("> Professor Salemi");
     }
     else {
@@ -126,11 +126,11 @@ void displayMemberList(int selectedMember) {
     display.display();
 }
 
-void displayTracking(int selectedMember, float distance, float direction) {
+void displayTracking(Member selectedMember, float distance, float direction) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
-    if(selectedMember == 0) {
+    if(selectedMember == SEBASTIAN) {
         display.print("SEBASTIAN");
     }
     else {

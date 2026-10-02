@@ -45,11 +45,11 @@ void loop() {
                 break;
 
             case 1:
-                displayMemberList(0);
+                displayMemberList(SEBASTIAN);
                 break;
 
             case 2:
-                displayTracking(125.0, 225.0);
+                displayTracking(SEBASTIAN, 125.0, 225.0);
                 break;
 
             case 3:

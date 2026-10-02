@@ -16,7 +16,7 @@ enum Screen {
 };
 
 static Screen currentScreen = STARTUP;
-static int currentMember = 0;
+static Member currentMember = SEBASTIAN;
 
 static unsigned long lastPrint = 0;
 
@@ -65,11 +65,11 @@ void deviceUpdate() {
 
             case MEMBER_LIST:
                 if(rotation > 0) {
-                    currentMember = 1;
+                    currentMember = PROFESSOR_SALEMI;
                     displayMemberList(currentMember);
                 }
                 else if(rotation < 0) {
-                    currentMember = 0;
+                    currentMember = SEBASTIAN;
                     displayMemberList(currentMember);
                 }
 
