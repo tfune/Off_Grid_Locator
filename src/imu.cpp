@@ -36,11 +36,8 @@ void imuUpdate() {
 
             yaw = yaw * 180.0 / PI;
 
-            heading = 90.0 - yaw;
-            if(heading < 0) {
-                heading += 360.0;
-            }
-
+        constexpr float offset = 90.0;
+        heading = fmod(90.0 - yaw + offset + 360.0, 360.0);
             accuracy = imu.getQuatRadianAccuracy();
         }
     }
