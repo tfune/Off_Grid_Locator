@@ -19,7 +19,7 @@ enum Screen {
 static Screen currentScreen = STARTUP;
 static Member currentMember = SEBASTIAN;
 
-void deviceInit() {
+void deviceInit(uint16_t deviceAddress) {
     Serial.begin(115200);
     Wire.begin();
 
@@ -31,7 +31,7 @@ void deviceInit() {
     if(displayInitialized) {
         displayStartup();
     }
-    loraInit(2);
+    loraInit(deviceAddress);
 }
 
 void deviceUpdate() {

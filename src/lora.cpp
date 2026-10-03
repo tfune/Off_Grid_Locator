@@ -162,8 +162,8 @@ bool loraInit(uint16_t address)
     incomingLine = "";
     discardLine = false;
 
-    digitalWrite(loraReset, HIGH);
     pinMode(loraReset, OUTPUT);
+    digitalWrite(loraReset, HIGH);
 
     radio.begin(115200);
 
