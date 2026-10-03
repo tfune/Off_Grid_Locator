@@ -7,7 +7,7 @@
 #include "imu.h"
 
 void setup() {
-  deviceInit();
+  deviceInit(2);
 }
 
 void loop() {

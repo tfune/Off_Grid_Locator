@@ -5,6 +5,7 @@
 #include "gps.h"
 #include "display.h"
 #include "input.h"
+#include "lora.h"
 
 static bool displayInitialized = false;
 static bool imuInitialized = false;
@@ -30,6 +31,7 @@ void deviceInit() {
     if(displayInitialized) {
         displayStartup();
     }
+    loraInit(2);
 }
 
 void deviceUpdate() {
