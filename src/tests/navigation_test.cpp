@@ -1,0 +1,97 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include "gps.h"
+#include "imu.h"
+#include "navigation.h"
+
+static bool imuInitialized = false;
+static unsigned long lastPrint = 0;
+
+// Sebastian Test Coordinates: {36.2, -86.2}
+// Trevor Test Coordinates: {32.653, -117.082}
+const Coordinates target = {36.2, -86.2};
+
+void setup() {
+    Serial.begin(115200);
+
+    while(!Serial) {
+        delay(10);
+    }
+
+    Serial.println("Navigation test started");
+
+    Wire.begin();
+
+    gpsInit();
+    imuInitialized = imuInit();
+
+    if(!imuInitialized) {
+        Serial.println("IMU initialization failed");
+    }
+}
+
+void loop() {
+    gpsUpdate();
+
+    if(imuInitialized) {
+        imuUpdate();
+    }
+
+    if(millis() - lastPrint >= 1000) {
+        GPSData gpsData = gpsGetData();
+
+        if(!gpsData.fix) {
+            Serial.println("Waiting for GPS fix...");
+            lastPrint = millis();
+            return;
+        }
+
+        Coordinates current = {
+            gpsData.latitude,
+            gpsData.longitude
+        };
+
+        NavigationResult result =
+            calculateNavigation(current, target);
+
+        Serial.print("Current: ");
+        Serial.print(current.latitude, 6);
+        Serial.print(", ");
+        Serial.println(current.longitude, 6);
+
+        Serial.print("Distance: ");
+        Serial.print(result.distance, 1);
+        Serial.println(" m");
+
+        Serial.print("Bearing: ");
+
+        if(result.bearingValid) {
+            Serial.print(result.bearing, 1);
+            Serial.println(" deg");
+        }
+        else {
+            Serial.println("undefined");
+        }
+
+        if(imuInitialized) {
+            float heading = imuGetHeading();
+
+            Serial.print("Device facing: ");
+            Serial.print(heading, 1);
+            Serial.println(" deg");
+
+            if(result.bearingValid) {
+                float relativeAngle =
+                    calculateArrowAngle(result.bearing, heading);
+
+                Serial.print("Target relative to device: ");
+                Serial.print(relativeAngle, 1);
+                Serial.println(" deg");
+            }
+        }
+
+        Serial.println("-------------------------");
+
+        lastPrint = millis();
+    }
+}
