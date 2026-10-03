@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include "device.h"
 #include "imu.h"
 #include "gps.h"
 #include "display.h"
@@ -64,7 +65,6 @@ void deviceUpdate() {
                     currentScreen = TRACKING;
                     displayTracking(currentMember, 150.0, 45.0);
                 }
-
                 break;
 
             case TRACKING:
@@ -72,7 +72,6 @@ void deviceUpdate() {
                     currentScreen = MEMBER_LIST;
                     displayMemberList(currentMember);
                 }
-                
                 break;
         }
     }
