@@ -5,6 +5,7 @@
 #include "gps.h"
 #include "display.h"
 #include "input.h"
+#include "lora.h"
 
 static bool displayInitialized = false;
 static bool imuInitialized = false;
@@ -18,7 +19,7 @@ enum Screen {
 static Screen currentScreen = STARTUP;
 static Member currentMember = SEBASTIAN;
 
-void deviceInit() {
+void deviceInit(uint16_t deviceAddress) {
     Serial.begin(115200);
     Wire.begin();
 
@@ -30,6 +31,7 @@ void deviceInit() {
     if(displayInitialized) {
         displayStartup();
     }
+    loraInit(deviceAddress);
 }
 
 void deviceUpdate() {
