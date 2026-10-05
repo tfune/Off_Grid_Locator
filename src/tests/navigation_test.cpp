@@ -7,9 +7,9 @@
 static bool imuInitialized = false;
 static unsigned long lastPrint = 0;
 
-// Sebastian Test Coordinates: {36.2, -86.2}
+// Sebastian Test Coordinates: {36.20625, -86.28833}
 // Trevor Test Coordinates: {32.653, -117.082}
-const Coordinates target = {36.2, -86.2};
+const Coordinates target = {36.20625, -86.28833};
 
 void setup() {
     Serial.begin(115200);
@@ -35,6 +35,7 @@ void loop() {
 
     if(imuInitialized) {
         imuUpdate();
+        
     }
 
     if(millis() - lastPrint >= 1000) {
@@ -54,10 +55,13 @@ void loop() {
         NavigationResult result =
             calculateNavigation(current, target);
 
-        Serial.print("Current: ");
-        Serial.print(current.latitude, 6);
+        Serial.print("IMU Accuracy: ");
+        Serial.println(imuGetAccuracy(), 1);
+
+        Serial.print("Current Location: ");
+        Serial.print(current.latitude, 0);
         Serial.print(", ");
-        Serial.println(current.longitude, 6);
+        Serial.println(current.longitude, 0);
 
         Serial.print("Distance: ");
         Serial.print(result.distance, 1);
