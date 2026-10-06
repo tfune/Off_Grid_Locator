@@ -75,6 +75,7 @@ void deviceUpdate() {
                 if(buttonPress) {
                     currentScreen = MEMBER_LIST;
                     displayMemberList(currentMember);
+                    break;
                 }
 
                 GPSData gpsData = gpsGetData();
