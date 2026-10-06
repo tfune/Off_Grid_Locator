@@ -3,6 +3,7 @@
 #include <Adafruit_SH110X.h>
 
 #include "display.h"
+#include "battery.h"
 
 constexpr int DISPLAY_WIDTH = 128;
 constexpr int DISPLAY_HEIGHT = 64;
@@ -64,6 +65,20 @@ static const char* getCardinalDirection(float angle) {
     }
 }
 
+static void drawBatteryIcon() {
+    const uint8_t level = batteryGetLevel(batteryReadVoltage());
+
+    constexpr int x = 109;
+    constexpr int y = 1;
+
+    display.drawRect(x, y, 17, 7, SH110X_WHITE);
+    display.fillRect(x + 17, y + 2, 2, 3, SH110X_WHITE);
+
+    for (uint8_t i = 0; i < level && i < 4; ++i) {
+        display.fillRect(x + 2 + i * 3, y + 2, 2, 3, SH110X_WHITE);
+    }
+}
+
 bool displayInit() {
     if(!display.begin(DISPLAY_ADDRESS)) {
         return false;
@@ -96,6 +111,7 @@ void displayStartup() {
     display.setCursor(31, 55);
     display.print("to Continue");
 
+    drawBatteryIcon();
     display.display();
 }
 
@@ -123,6 +139,7 @@ void displayMemberList(Member selectedMember) {
         display.print("  Professor Salemi");
     }
 
+    drawBatteryIcon();
     display.display();
 }
 
@@ -158,6 +175,7 @@ void displayTracking(Member selectedMember, float distance, float direction) {
     display.setCursor(92, 52);
     display.print(getCardinalDirection(direction));
 
+    drawBatteryIcon();
     display.display();
 }
 
@@ -175,6 +193,7 @@ void displayLocationUnavailable() {
     display.setCursor(0, 38);
     display.print("Waiting for update...");
 
+    drawBatteryIcon();
     display.display();
 }
 
@@ -192,5 +211,6 @@ void displayInitializationError() {
     display.setCursor(0, 38);
     display.print("Reset device to retry");
 
+    drawBatteryIcon();
     display.display();
 }
