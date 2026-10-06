@@ -2,7 +2,7 @@
 #include <Adafruit_TinyUSB.h>
 #include "lora.h"
 
-#define deviceAddress 1  // Load device B (2) and then change address and load to device A (1) to test the echo functionality.
+#define deviceAddress 2 // Load device B (2) and then change address and load to device A (1) to test the echo functionality.
 
 #if deviceAddress != 1 && deviceAddress != 2
 #error "deviceAddress must be 1 or 2"
@@ -14,10 +14,12 @@ void setup()
 {
     Serial.begin(115200);
 
-    unsigned long started = millis();
-    while (!Serial && millis() - started < 15000) {
+    while (!Serial) {
         delay(10);
     }
+
+    Serial.print("Echo test version 2 — Device ");
+    Serial.println(deviceAddress == 1 ? "A" : "B");
 
     radioReady = loraInit(deviceAddress);
 
@@ -30,6 +32,7 @@ void setup()
 
 void loop()
 {
+    delay(5);
     loraUpdate();
 
 #if deviceAddress == 1
@@ -40,7 +43,7 @@ void loop()
     static String expectedReply;
     static unsigned long sentAt = 0;
 
-    if(finished || !Serial) return;
+    if(finished) return;
 
     if (!radioReady) {
         Serial.println("FAIL: A radio initialization failed");
@@ -61,7 +64,9 @@ void loop()
 
         sentAt = millis();
 
-        if (loraSend(2, expectedReply)) {
+        bool accepted = loraSend(2, expectedReply);
+        
+        if (accepted) {
             waitingForReply = true;
         }
         else {
@@ -75,7 +80,7 @@ void loop()
 
         if (loraReceive(message) &&
             message.sender == 2 &&
-            message.payload == expectedReply) {
+            message.payload == (String("ACK:") + expectedReply)) {
 
             Serial.print("A received: ");
             Serial.println(message.payload);
@@ -87,7 +92,7 @@ void loop()
         else if (millis() - sentAt >= 5000) {
             Serial.print("TIMEOUT: ");
             Serial.println(expectedReply);
-
+ 
             packetNumber++;
             waitingForReply = false;
         }
@@ -125,15 +130,15 @@ void loop()
         }
 
         if (validPacket) {
-            bool accepted = loraSend(1, message.payload);
+            Serial.print("B received: ");
+            Serial.println(message.payload);
+            Serial.flush();
 
-            if (Serial) {
-                Serial.print("B received: ");
-                Serial.println(message.payload);
-                Serial.println(
-                    accepted ? "Echo accepted" : "Echo failed"
-                );
-            }
+            String reply = "ACK:";
+            reply += message.payload;
+            bool accepted = loraSend(1, reply);
+            Serial.println(accepted ? "Echo accepted" : "Echo failed");
+            Serial.flush();
         }
     }
 #endif
