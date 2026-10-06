@@ -126,7 +126,7 @@ void displayMemberList(Member selectedMember) {
     display.display();
 }
 
-void displayTracking(Member selectedMember, float distance, float direction) {
+void displayTracking(Member selectedMember, float distance, float bearing, float arrowAngle) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
@@ -150,13 +150,13 @@ void displayTracking(Member selectedMember, float distance, float direction) {
     display.print("Direction:");
 
     display.setCursor(0, 49);
-    display.print(direction, 0);
+    display.print(arrowAngle, 0);
     display.print(" deg");
 
-    drawDirectionArrow(direction);
+    drawDirectionArrow(arrowAngle);
 
     display.setCursor(92, 52);
-    display.print(getCardinalDirection(direction));
+    display.print(getCardinalDirection(bearing));
 
     display.display();
 }
