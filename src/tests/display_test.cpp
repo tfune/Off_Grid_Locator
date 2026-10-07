@@ -7,7 +7,6 @@ static bool displayInitialized = false;
 static unsigned long lastScreenChange = 0;
 static int currentScreen = 0;
 
-const Device testDevice = {1, "Sebastian"};
 const Device firstDevice = {2, "Trevor"};
 const Device secondDevice = {3, "Professor Salemi"};
 const Device selectedDevice = firstDevice;

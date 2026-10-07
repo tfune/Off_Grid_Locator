@@ -7,7 +7,6 @@
 #include "input.h"
 #include "lora.h"
 #include "navigation.h"
-#include "target.h"
 #include "battery.h"
 
 static unsigned long lastBatteryDisplay = 0;
