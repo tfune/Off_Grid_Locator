@@ -8,7 +8,7 @@ static bool imuInitialized = false;
 static unsigned long lastPrint = 0;
 
 // Sebastian Test Coordinates: {36.20625, -86.28833}
-// Trevor Test Coordinates: {32.653, -117.082}
+// Trevor Test Coordinates: {32.65272, -117.08230}
 const Coordinates target = {36.20625, -86.28833};
 
 void setup() {
