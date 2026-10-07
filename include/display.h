@@ -9,6 +9,6 @@ bool displayInit();
 void displayStartup();
 
 void displayMemberList(Member selectedMember);
-void displayTracking(Member selectedMember, float distance, float bearing, float arrowAngle);
+void displayTracking(Member selectedMember, float distance, float direction);
 void displayLocationUnavailable();
 void displayInitializationError();

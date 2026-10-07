@@ -49,7 +49,7 @@ void loop() {
                 break;
 
             case 2:
-                displayTracking(SEBASTIAN, 125.0, 225.0, 225.0);
+                displayTracking(SEBASTIAN, 125.0, 225.0);
                 break;
 
             case 3:
