@@ -1,10 +1,16 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "display.h"
+#include "device.h"
 
 static bool displayInitialized = false;
 static unsigned long lastScreenChange = 0;
 static int currentScreen = 0;
+
+const Device testDevice = {1, "Sebastian"};
+const Device firstDevice = {2, "Trevor"};
+const Device secondDevice = {3, "Professor Salemi"};
+const Device selectedDevice = firstDevice;
 
 void setup() {
     Serial.begin(115200);
@@ -45,11 +51,11 @@ void loop() {
                 break;
 
             case 1:
-                displayMemberList(SEBASTIAN);
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
                 break;
 
             case 2:
-                displayTracking(SEBASTIAN, 125.0, 225.0, 225.0);
+                displayTracking(selectedDevice, 125.0, 225.0, 225.0);
                 break;
 
             case 3:
