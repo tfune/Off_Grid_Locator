@@ -19,14 +19,9 @@ static Member currentMember = SEBASTIAN;
 void setup() {
     Serial.begin(115200);
 
-    while(!Serial) {
-        delay(10);
-    }
-
-    Serial.println("Battery test started");
-
     Wire.begin();
 
+    batteryInit();
     displayInitialized = displayInit();
     inputInit();
 
@@ -36,18 +31,43 @@ void setup() {
 }
 
 void loop() {
+    static bool serialAnnounced = false;
+    static unsigned long lastHeartbeat = 0;
+    const unsigned long heartbeatNow = millis();
+
+    if (Serial) {
+        if (!serialAnnounced) {
+            Serial.println("Battery test connected");
+            serialAnnounced = true;
+        }
+
+        if (heartbeatNow - lastHeartbeat >= 1000) {
+            lastHeartbeat = heartbeatNow;
+            Serial.print("Battery test running, cached voltage: ");
+            Serial.println(batteryGetVoltage(), 2);
+        }
+    } else {
+        serialAnnounced = false;
+    }
     
-    static unsigned long lastBatteryRead = 0;
-    unsigned long now = millis();
+    static unsigned long lastBatteryDisplay = 0;
 
-    if (now - lastBatteryRead >= 1000) {
-        lastBatteryRead = now;
+    if (batteryUpdate() && Serial) {
+        Serial.print("Battery sampled at ");
+        Serial.print(millis() / 1000);
+        Serial.print(" s: ");
+        Serial.println(batteryGetVoltage(), 2);
+    }
 
-        Serial.println("Reading battery...");
-        float voltage = batteryReadVoltage();
+    const unsigned long now = millis();
 
-        Serial.print("VBat: ");
-        Serial.println(voltage, 2);
+    if (displayInitialized && now - lastBatteryDisplay >= 60000) {
+        lastBatteryDisplay = now;
+        displayRefreshBattery();
+
+        if (Serial) {
+            Serial.println("Battery icon refreshed");
+        }
     }
    
     if(!displayInitialized) {

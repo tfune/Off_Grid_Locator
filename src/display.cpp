@@ -66,17 +66,24 @@ static const char* getCardinalDirection(float angle) {
 }
 
 static void drawBatteryIcon() {
-    const uint8_t level = batteryGetLevel(batteryReadVoltage());
+    const uint8_t level = batteryGetLevel();
 
     constexpr int x = 109;
     constexpr int y = 1;
 
-    display.drawRect(x, y, 17, 7, SH110X_WHITE);
-    display.fillRect(x + 17, y + 2, 2, 3, SH110X_WHITE);
+    display.fillRect(x, y, 19, 7, SH110X_BLACK);
+
+    display.drawRect(x, y, 15, 7, SH110X_WHITE);
+    display.fillRect(x + 15, y + 2, 2, 3, SH110X_WHITE);
 
     for (uint8_t i = 0; i < level && i < 4; ++i) {
         display.fillRect(x + 2 + i * 3, y + 2, 2, 3, SH110X_WHITE);
     }
+}
+
+void displayRefreshBattery() {
+    drawBatteryIcon();
+    display.display();
 }
 
 bool displayInit() {
