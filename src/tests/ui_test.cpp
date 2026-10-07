@@ -63,7 +63,7 @@ void loop() {
 
             if(buttonPress) {
                 currentScreen = TRACKING;
-                displayTracking(currentMember, 150.0, 45.0);
+                displayTracking(currentMember, 150.0, 45.0, 45.0);
             }
             break;
 
