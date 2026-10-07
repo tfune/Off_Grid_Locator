@@ -8,6 +8,9 @@
 #include "lora.h"
 #include "navigation.h"
 #include "target.h"
+#include "battery.h"
+
+static unsigned long lastBatteryDisplay = 0;
 
 static bool displayInitialized = false;
 static bool imuInitialized = false;
@@ -28,6 +31,9 @@ void deviceInit(uint16_t deviceAddress) {
     Serial.begin(115200);
     Wire.begin();
 
+    batteryInit();
+    lastBatteryDisplay = millis();
+
     displayInitialized = displayInit();
     gpsInit();
     imuInitialized = imuInit();
@@ -40,6 +46,15 @@ void deviceInit(uint16_t deviceAddress) {
 }
 
 void deviceUpdate() {
+    batteryUpdate();
+
+    const unsigned long now = millis();
+
+    if (displayInitialized && now - lastBatteryDisplay >= 60000) {
+        lastBatteryDisplay = now;
+        displayRefreshBattery();
+        }
+
     if(displayInitialized && imuInitialized) {
         gpsUpdate();
         imuUpdate();
