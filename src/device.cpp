@@ -6,8 +6,6 @@
 #include "display.h"
 #include "input.h"
 #include "lora.h"
-#include "navigation.h"
-#include "target.h"
 
 static bool displayInitialized = false;
 static bool imuInitialized = false;
@@ -20,9 +18,6 @@ enum Screen {
 
 static Screen currentScreen = STARTUP;
 static Member currentMember = SEBASTIAN;
-
-static const Coordinates sebastianTarget = {36.20625, -86.28833};
-static const Coordinates professorSalemiTarget = {32.65272, -117.08230};
 
 void deviceInit(uint16_t deviceAddress) {
     Serial.begin(115200);
@@ -68,47 +63,16 @@ void deviceUpdate() {
 
                 if(buttonPress) {
                     currentScreen = TRACKING;
+                    displayTracking(currentMember, 150.0, 45.0);
                 }
                 break;
 
-            case TRACKING: {
+            case TRACKING:
                 if(buttonPress) {
                     currentScreen = MEMBER_LIST;
                     displayMemberList(currentMember);
-                    break;
                 }
-
-                GPSData gpsData = gpsGetData();
-
-                if(!gpsData.fix) {
-                    displayLocationUnavailable();
-                    break;
-                }
-                
-                Coordinates currentCoordinates = {gpsData.latitude, gpsData.longitude};
-                Coordinates targetCoordinates;
-
-                if(currentMember == SEBASTIAN) {
-                    targetCoordinates = sebastianTarget;
-                }
-                else {
-                    targetCoordinates = professorSalemiTarget;
-                }
-
-                NavigationResult result = calculateNavigation(currentCoordinates, targetCoordinates);
-
-                if(!result.bearingValid) {
-                    displayLocationUnavailable();
-                    break;
-                }
-
-                float heading = imuGetHeading();
-                float arrowAngle = calculateArrowAngle(result.bearing, heading);
-
-                displayTracking(currentMember, result.distance, result.bearing, arrowAngle);
-
                 break;
-            }
         }
     }
 }
