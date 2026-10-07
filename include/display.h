@@ -12,3 +12,4 @@ void displayMemberList(Member selectedMember);
 void displayTracking(Member selectedMember, float distance, float bearing, float arrowAngle);
 void displayLocationUnavailable();
 void displayInitializationError();
+void displayRefreshBattery();
