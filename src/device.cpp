@@ -8,6 +8,9 @@
 #include "lora.h"
 #include "navigation.h"
 #include "battery.h"
+#include "target.h"
+#include "packet.h"
+#include <math.h>
 
 static unsigned long lastBatteryDisplay = 0;
 
@@ -22,13 +25,17 @@ enum Screen {
 
 static Screen currentScreen = STARTUP;
 
-static const Coordinates sebastianTarget = {36.20625, -86.28833};
-static const Coordinates trevorTarget = {32.65272, -117.08230};
-static const Coordinates professorSalemiTarget = {34.05224, -118.24368};
+//static const Coordinates sebastianTarget = {36.20625, -86.28833};
+//static const Coordinates trevorTarget = {32.65272, -117.08230};
+//static const Coordinates professorSalemiTarget = {34.05224, -118.24368};
 
 static Device firstDevice;
 static Device secondDevice;
 static Device selectedDevice;
+
+static unsigned long lastLocationSend = 0;
+static unsigned long locationSendInterval = 2000;
+static unsigned int locationSequence = 0;
 
 void deviceInit() {
     if(DEVICE_ID == 1) {
@@ -62,10 +69,77 @@ void deviceInit() {
     }
 
     loraInit(DEVICE_ID);
+
+    randomSeed(DEVICE_ID);
+
+    lastLocationSend = millis();
+    locationSendInterval = 400UL + (DEVICE_ID - 1UL) * 600UL;
+}
+
+static void receiveLocations() {
+    loraUpdate();
+
+    LoRaMessage message;
+    if (!loraReceive(message)){
+        return;
+    }
+
+    LocationPacket packet;
+    if (!parseLocationPacket(message.payload, packet)) {
+        return;
+    }
+
+    if (packet.source != message.sender || packet.hops != 0 || !isfinite(packet.latitude) || !isfinite(packet.longitude)) {
+        return;
+    }
+
+    Coordinates coordinates = {
+        packet.latitude, packet.longitude
+    };
+
+    if (targetSet(message.sender, coordinates, millis())) {
+        Serial.print("Location received from device ");
+        Serial.println(message.sender);
+    }
+}
+
+static void sendLocation() {
+    unsigned long now = millis();
+
+    if (!loraIsInitialized() || now - lastLocationSend < locationSendInterval) {
+        return;
+    }
+
+    lastLocationSend = now;
+    locationSendInterval =
+    static_cast<unsigned long>(random(1800, 2201));
+
+    GPSData gpsData = gpsGetData();
+
+    if (!gpsHasFreshFix(now, 3000) || !isfinite(gpsData.latitude) || !isfinite(gpsData.longitude)) {
+        return;
+    }
+
+    LocationPacket packet;
+    packet.source = DEVICE_ID;
+    packet.sequence = locationSequence++;
+    packet.latitude = gpsData.latitude;
+    packet.longitude = gpsData.longitude;
+    packet.hops = 0;
+
+    String payload = createLocationPacket(packet);
+
+    bool accepted = loraSend(0, payload);
+
+    Serial.println(accepted ? "Location broadcast accepted" : "Location broadcast failed");
 }
 
 void deviceUpdate() {
+   
     batteryUpdate();
+    gpsUpdate();
+    receiveLocations();
+    sendLocation();
 
     const unsigned long now = millis();
 
@@ -75,7 +149,6 @@ void deviceUpdate() {
         }
 
     if(displayInitialized && imuInitialized) {
-        gpsUpdate();
         imuUpdate();
         inputUpdate();
 
@@ -114,7 +187,7 @@ void deviceUpdate() {
 
                 GPSData gpsData = gpsGetData();
 
-                if(!gpsData.fix) {
+                if(!gpsHasFreshFix(millis(), 3000)) {
                     displayLocationUnavailable();
                     break;
                 }
@@ -122,14 +195,11 @@ void deviceUpdate() {
                 Coordinates currentCoordinates = {gpsData.latitude, gpsData.longitude};
                 Coordinates targetCoordinates;
 
-                if(selectedDevice.id == 1) {
-                    targetCoordinates = sebastianTarget;
-                }
-                else if(selectedDevice.id == 2) {
-                    targetCoordinates = trevorTarget;
-                }
-                else {
-                    targetCoordinates = professorSalemiTarget;
+                constexpr unsigned long LOCATION_MAX_AGE_MS = 30000;
+
+                if (!targetGet(selectedDevice.id, targetCoordinates, millis(), LOCATION_MAX_AGE_MS)) {
+                    displayLocationUnavailable();
+                    break;
                 }
 
                 NavigationResult result = calculateNavigation(currentCoordinates, targetCoordinates);

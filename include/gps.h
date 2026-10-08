@@ -10,3 +10,4 @@ struct GPSData {
 void gpsInit();
 void gpsUpdate();
 GPSData gpsGetData();
+bool gpsHasFreshFix(unsigned long now, unsigned long timeStamp);
