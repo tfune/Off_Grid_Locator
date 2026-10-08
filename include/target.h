@@ -1,5 +1,6 @@
 #pragma once
+#include <stdint.h>
 #include "navigation.h"
 
-void targetSet(const Coordinates& coordinates);
-bool targetGet(Coordinates& coordinates);
+bool targetSet(uint16_t deviceId, const Coordinates& coordinates, unsigned long timeStamp);
+bool targetGet(uint16_t deviceId, Coordinates& coordinates, unsigned long now, unsigned long maxAge);

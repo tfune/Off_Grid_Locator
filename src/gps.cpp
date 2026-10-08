@@ -5,6 +5,8 @@
 
 static Adafruit_GPS gps(&Serial1);
 static GPSData currentGPS;
+static unsigned long lastGPSUpdate = 0;
+static bool gpsUpdateReceived = false;
 
 void gpsInit()
 {
@@ -33,6 +35,8 @@ void gpsUpdate()
             continue;
         }
 
+        lastGPSUpdate = millis();
+        gpsUpdateReceived = true;
         currentGPS.fix = gps.fix;
 
         if (currentGPS.fix) {
@@ -47,4 +51,9 @@ void gpsUpdate()
 GPSData gpsGetData()
 {
     return currentGPS;
+}
+
+bool gpsHasFreshFix(unsigned long now, unsigned long timeStamp)
+{
+        return gpsUpdateReceived && currentGPS.fix && now - lastGPSUpdate <= timeStamp;
 }
