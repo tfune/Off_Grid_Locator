@@ -1,15 +1,12 @@
 #pragma once
 
-enum Member {
-    SEBASTIAN,
-    PROFESSOR_SALEMI
-};
+#include "device.h"
 
 bool displayInit();
 void displayStartup();
 
-void displayMemberList(Member selectedMember);
-void displayTracking(Member selectedMember, float distance, float bearing, float arrowAngle);
+void displayMemberList(const Device& firstDevice, const Device& secondDevice, const Device& selectedDevice);
+void displayTracking(const Device& selectedDevice, float distance, float bearing, float arrowAngle);
 void displayLocationUnavailable();
 void displayInitializationError();
 void displayRefreshBattery();

@@ -7,7 +7,6 @@
 #include "input.h"
 #include "lora.h"
 #include "navigation.h"
-#include "target.h"
 #include "battery.h"
 
 static unsigned long lastBatteryDisplay = 0;
@@ -22,12 +21,31 @@ enum Screen {
 };
 
 static Screen currentScreen = STARTUP;
-static Member currentMember = SEBASTIAN;
 
 static const Coordinates sebastianTarget = {36.20625, -86.28833};
-static const Coordinates professorSalemiTarget = {32.65272, -117.08230};
+static const Coordinates trevorTarget = {32.65272, -117.08230};
+static const Coordinates professorSalemiTarget = {34.05224, -118.24368};
 
-void deviceInit(uint16_t deviceAddress) {
+static Device firstDevice;
+static Device secondDevice;
+static Device selectedDevice;
+
+void deviceInit() {
+    if(DEVICE_ID == 1) {
+        firstDevice = devices[1];
+        secondDevice = devices[2];
+    }
+    else if(DEVICE_ID == 2) {
+        firstDevice = devices[0];
+        secondDevice = devices[2];
+    }
+    else {
+        firstDevice = devices[0];
+        secondDevice = devices[1];
+    }
+
+    selectedDevice = firstDevice;
+
     Serial.begin(115200);
     Wire.begin();
 
@@ -42,7 +60,8 @@ void deviceInit(uint16_t deviceAddress) {
     if(displayInitialized) {
         displayStartup();
     }
-    loraInit(deviceAddress);
+
+    loraInit(DEVICE_ID);
 }
 
 void deviceUpdate() {
@@ -67,18 +86,18 @@ void deviceUpdate() {
             case STARTUP:
                 if(buttonPress) {
                     currentScreen = MEMBER_LIST;
-                    displayMemberList(currentMember);
+                    displayMemberList(firstDevice, secondDevice, selectedDevice);
                 }
                 break;
 
             case MEMBER_LIST:
                 if(rotation > 0) {
-                    currentMember = PROFESSOR_SALEMI;
-                    displayMemberList(currentMember);
+                    selectedDevice = secondDevice;
+                    displayMemberList(firstDevice, secondDevice, selectedDevice);
                 }
                 else if(rotation < 0) {
-                    currentMember = SEBASTIAN;
-                    displayMemberList(currentMember);
+                    selectedDevice = firstDevice;
+                    displayMemberList(firstDevice, secondDevice, selectedDevice);
                 }
 
                 if(buttonPress) {
@@ -89,7 +108,7 @@ void deviceUpdate() {
             case TRACKING: {
                 if(buttonPress) {
                     currentScreen = MEMBER_LIST;
-                    displayMemberList(currentMember);
+                    displayMemberList(firstDevice, secondDevice, selectedDevice);
                     break;
                 }
 
@@ -103,8 +122,11 @@ void deviceUpdate() {
                 Coordinates currentCoordinates = {gpsData.latitude, gpsData.longitude};
                 Coordinates targetCoordinates;
 
-                if(currentMember == SEBASTIAN) {
+                if(selectedDevice.id == 1) {
                     targetCoordinates = sebastianTarget;
+                }
+                else if(selectedDevice.id == 2) {
+                    targetCoordinates = trevorTarget;
                 }
                 else {
                     targetCoordinates = professorSalemiTarget;
@@ -120,7 +142,7 @@ void deviceUpdate() {
                 float heading = imuGetHeading();
                 float arrowAngle = calculateArrowAngle(result.bearing, heading);
 
-                displayTracking(currentMember, result.distance, result.bearing, arrowAngle);
+                displayTracking(selectedDevice, result.distance, result.bearing, arrowAngle);
 
                 break;
             }

@@ -4,6 +4,7 @@
 #include "display.h"
 #include "input.h"
 #include "battery.h"
+#include "device.h"
 
 static bool displayInitialized = false;
 
@@ -14,7 +15,10 @@ enum Screen {
 };
 
 static Screen currentScreen = STARTUP;
-static Member currentMember = SEBASTIAN;
+
+const Device firstDevice = {2, "Trevor"};
+const Device secondDevice = {3, "Professor Salemi"};
+Device selectedDevice = firstDevice;
 
 void setup() {
     Serial.begin(115200);
@@ -83,30 +87,30 @@ void loop() {
         case STARTUP:
             if(buttonPress) {
                 currentScreen = MEMBER_LIST;
-                displayMemberList(currentMember);
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
             }
             break;
 
         case MEMBER_LIST:
             if(rotation > 0) {
-                currentMember = PROFESSOR_SALEMI;
-                displayMemberList(currentMember);
+                selectedDevice = secondDevice;
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
             }
             else if(rotation < 0) {
-                currentMember = SEBASTIAN;
-                displayMemberList(currentMember);
+                selectedDevice = firstDevice;
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
             }
 
             if(buttonPress) {
                 currentScreen = TRACKING;
-                displayTracking(currentMember, 150.0, 45.0);
+                displayTracking(selectedDevice, 150.0, 45.0, 45.0);
             }
             break;
 
         case TRACKING:
             if(buttonPress) {
                 currentScreen = MEMBER_LIST;
-                displayMemberList(currentMember);
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
             }
             break;
     }

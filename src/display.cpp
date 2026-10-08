@@ -122,7 +122,7 @@ void displayStartup() {
     display.display();
 }
 
-void displayMemberList(Member selectedMember) {
+void displayMemberList(const Device& firstDevice, const Device& secondDevice, const Device& selectedDevice) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
@@ -131,35 +131,34 @@ void displayMemberList(Member selectedMember) {
     display.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
     display.setCursor(0, 16);
-    if(selectedMember == SEBASTIAN) {
-        display.print("> Sebastian");
+    if(selectedDevice.id == firstDevice.id) {
+        display.print("> ");
     }
     else {
-        display.print("  Sebastian");
+        display.print("  ");
     }
+    display.print(firstDevice.name);
 
     display.setCursor(0, 28);
-    if(selectedMember == PROFESSOR_SALEMI) {
-        display.print("> Professor Salemi");
+    if(selectedDevice.id == secondDevice.id) {
+        display.print("> ");
     }
     else {
-        display.print("  Professor Salemi");
+        display.print("  ");
     }
+    display.print(secondDevice.name);
 
     drawBatteryIcon();
     display.display();
 }
 
-void displayTracking(Member selectedMember, float distance, float bearing, float arrowAngle) {
+void displayTracking(const Device& selectedDevice, float distance, float bearing, float arrowAngle) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
-    if(selectedMember == SEBASTIAN) {
-        display.print("SEBASTIAN");
-    }
-    else {
-        display.print("PROFESSOR SALEMI");
-    }
+    String name = selectedDevice.name;
+    name.toUpperCase();
+    display.print(name);
 
     display.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
