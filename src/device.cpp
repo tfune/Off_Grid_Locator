@@ -25,10 +25,6 @@ enum Screen {
 
 static Screen currentScreen = STARTUP;
 
-//static const Coordinates sebastianTarget = {36.20625, -86.28833};
-//static const Coordinates trevorTarget = {32.65272, -117.08230};
-//static const Coordinates professorSalemiTarget = {34.05224, -118.24368};
-
 static Device firstDevice;
 static Device secondDevice;
 static Device selectedDevice;
@@ -36,6 +32,14 @@ static Device selectedDevice;
 static unsigned long lastLocationSend = 0;
 static unsigned long locationSendInterval = 2000;
 static unsigned int locationSequence = 0;
+
+static unsigned int lastSequence[3] = {};
+static unsigned long lastSequenceTime[3] = {};
+static bool hasSequence[3] = {};
+
+static bool relayPending = false;
+static LocationPacket relayPacket;
+static unsigned long relayTime = 0;
 
 void deviceInit() {
     if(DEVICE_ID == 1) {
@@ -76,6 +80,25 @@ void deviceInit() {
     locationSendInterval = 400UL + (DEVICE_ID - 1UL) * 600UL;
 }
 
+static bool isDuplicate(const LocationPacket& packet) {
+    int index = packet.source - 1;
+    unsigned long now = millis();
+
+    constexpr unsigned long SEQUENCE_RESET_TIME = 10000;
+
+    if(hasSequence[index] && 
+        now - lastSequenceTime[index] < SEQUENCE_RESET_TIME &&
+        packet.sequence <= lastSequence[index]) {
+        return true;
+    }
+
+    lastSequence[index] = packet.sequence;
+    lastSequenceTime[index] = now;
+    hasSequence[index] = true;
+
+    return false;
+}
+
 static void receiveLocations() {
     loraUpdate();
 
@@ -89,7 +112,33 @@ static void receiveLocations() {
         return;
     }
 
-    if (packet.source != message.sender || packet.hops != 0 || !isfinite(packet.latitude) || !isfinite(packet.longitude)) {
+    if (message.sender < 1 || message.sender > 3) {
+        return;
+    }
+
+    if (packet.hops > 1 || !isfinite(packet.latitude) || !isfinite(packet.longitude)) {
+        return;
+    }
+
+    if (packet.hops == 0 && packet.source != message.sender) {
+        return;
+    }
+
+    if (packet.hops == 1 && packet.source == message.sender) {
+        return;
+    }
+
+    if (packet.source == DEVICE_ID || packet.source < 1 || packet.source > 3) {
+        return;
+    }
+
+    if (isDuplicate(packet)) {
+        if(relayPending && 
+            relayPacket.source == packet.source && 
+            relayPacket.sequence == packet.sequence) {
+            relayPending = false;
+        }
+
         return;
     }
 
@@ -97,10 +146,36 @@ static void receiveLocations() {
         packet.latitude, packet.longitude
     };
 
-    if (targetSet(message.sender, coordinates, millis())) {
+    if (targetSet(packet.source, coordinates, millis())) {
         Serial.print("Location received from device ");
-        Serial.println(message.sender);
+        Serial.print(packet.source);
+        Serial.print(" via device ");
+        Serial.print(message.sender);
+        Serial.print(" | hops: ");
+        Serial.println(packet.hops);
     }
+
+    if(packet.hops == 0 && !relayPending) {
+        relayPacket = packet;
+        relayPacket.hops = 1;
+
+        relayTime = millis() + random(100, 301);
+        relayPending = true;
+    }
+}
+
+static void sendRelay() {
+    if(!loraIsInitialized() || !relayPending || millis() < relayTime) {
+        return;
+    }
+
+    String payload = createLocationPacket(relayPacket);
+
+    bool accepted = loraSend(0, payload);
+
+    Serial.println(accepted ? "Location relay accepted" : "Location relay failed");
+
+    relayPending = false;
 }
 
 static void sendLocation() {
@@ -139,6 +214,7 @@ void deviceUpdate() {
     batteryUpdate();
     gpsUpdate();
     receiveLocations();
+    sendRelay();
     sendLocation();
 
     const unsigned long now = millis();
