@@ -7,7 +7,7 @@
 
 constexpr int DISPLAY_WIDTH = 128;
 constexpr int DISPLAY_HEIGHT = 64;
-constexpr int DISPLAY_ADDRESS = 0x3C;
+constexpr uint8_t DISPLAY_ADDRESS = 0x3C;
 
 static Adafruit_SH1106G display(DISPLAY_WIDTH, DISPLAY_HEIGHT, &Wire);
 
@@ -18,13 +18,16 @@ static void drawDirectionArrow(float angle) {
     const int headLength = 5;
     const float headAngle = 30.0;
 
+    // Convert the relative direction angle to radians for trig functions
     float radians = angle * PI / 180.0;
 
+    // Calculate the arrow endpoint with 0 degrees pointing up on the display
     int endX = centerX + round(length * sin(radians));
     int endY = centerY - round(length * cos(radians));
 
     display.drawLine(centerX, centerY, endX, endY, SH110X_WHITE);
 
+    // Calculate the two arrowhead directions relative to the shaft
     float leftRadians = (angle + 180.0 - headAngle) * PI / 180.0;
     float rightRadians = (angle + 180.0 + headAngle) * PI / 180.0;
 
@@ -39,25 +42,26 @@ static void drawDirectionArrow(float angle) {
 }
 
 static const char* getCardinalDirection(float angle) {
-    if(angle >= 337.5 || angle < 22.5) {
+    // Divide the compass into eight 45-degree cardinal and intercardinal sectors
+    if (angle >= 337.5 || angle < 22.5) {
         return "N";
     }
-    else if(angle < 67.5) {
+    else if (angle < 67.5) {
         return "NE";
     }
-    else if(angle < 112.5) {
+    else if (angle < 112.5) {
         return "E";
     }
-    else if(angle < 157.5) {
+    else if (angle < 157.5) {
         return "SE";
     }
-    else if(angle < 202.5) {
+    else if (angle < 202.5) {
         return "S";
     }
-    else if(angle < 247.5) {
+    else if (angle < 247.5) {
         return "SW";
     }
-    else if(angle < 292.5) {
+    else if (angle < 292.5) {
         return "W";
     }
     else {
@@ -71,11 +75,13 @@ static void drawBatteryIcon() {
     constexpr int x = 109;
     constexpr int y = 1;
 
+    // Clear the battery icon area before redrawing
     display.fillRect(x, y, 19, 7, SH110X_BLACK);
 
     display.drawRect(x, y, 15, 7, SH110X_WHITE);
     display.fillRect(x + 15, y + 2, 2, 3, SH110X_WHITE);
 
+    // Fill up to four segments based on the current battery level
     for (uint8_t i = 0; i < level && i < 4; ++i) {
         display.fillRect(x + 2 + i * 3, y + 2, 2, 3, SH110X_WHITE);
     }
@@ -87,7 +93,7 @@ void displayRefreshBattery() {
 }
 
 bool displayInit() {
-    if(!display.begin(DISPLAY_ADDRESS)) {
+    if (!display.begin(DISPLAY_ADDRESS)) {
         return false;
     }
 
@@ -131,7 +137,7 @@ void displayMemberList(const Device& firstDevice, const Device& secondDevice, co
     display.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
     display.setCursor(0, 16);
-    if(selectedDevice.id == firstDevice.id) {
+    if (selectedDevice.id == firstDevice.id) {
         display.print("> ");
     }
     else {
@@ -140,7 +146,7 @@ void displayMemberList(const Device& firstDevice, const Device& secondDevice, co
     display.print(firstDevice.name);
 
     display.setCursor(0, 28);
-    if(selectedDevice.id == secondDevice.id) {
+    if (selectedDevice.id == secondDevice.id) {
         display.print("> ");
     }
     else {
@@ -178,6 +184,7 @@ void displayTracking(const Device& selectedDevice, float distance, float bearing
 
     drawDirectionArrow(arrowAngle);
 
+    // Cardinal direction uses absolute bearing rather than device-relative arrow angle
     display.setCursor(92, 52);
     display.print(getCardinalDirection(bearing));
 

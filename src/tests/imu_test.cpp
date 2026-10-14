@@ -8,7 +8,7 @@ static unsigned long lastPrint = 0;
 void setup() {
     Serial.begin(115200);
 
-    while(!Serial) {
+    while (!Serial) {
         delay(10);
     }
 
@@ -18,16 +18,17 @@ void setup() {
 
     imuInitialized = imuInit();
 
-    if(!imuInitialized) {
+    if (!imuInitialized) {
         Serial.println("IMU initialization failed");
     }
 }
 
 void loop() {
-    if(imuInitialized) {
+    if (imuInitialized) {
         imuUpdate();
 
-        if(millis() - lastPrint >= 1000) {
+        // Print heading and accuracy once per second
+        if (millis() - lastPrint >= 1000) {
             Serial.print("Heading: ");
             Serial.println(imuGetHeading(), 1);
 

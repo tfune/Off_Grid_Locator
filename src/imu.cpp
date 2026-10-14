@@ -12,7 +12,7 @@ static float heading = 0.0;
 static float accuracy = 0.0;
 
 bool imuInit() {
-    if(imu.begin(IMU_ADDRESS, Wire, IMU_INT, IMU_RST) == false) {
+    if (!imu.begin(IMU_ADDRESS, Wire, IMU_INT, IMU_RST)) {
         return false;
     }
 
@@ -22,27 +22,32 @@ bool imuInit() {
 }
 
 void imuUpdate() {
-    if(imu.getSensorEvent() == true) {
-        if(imu.getSensorEventID() == SENSOR_REPORTID_ROTATION_VECTOR) {
+    if (imu.getSensorEvent()) {
+        if (imu.getSensorEventID() == SENSOR_REPORTID_ROTATION_VECTOR) {
             float quatI = imu.getQuatI();
             float quatJ = imu.getQuatJ();
             float quatK = imu.getQuatK();
             float quatReal = imu.getQuatReal();
 
+            // Convert the rotation-vector quaternion into yaw
             float yaw = atan2(
                 2.0 * (quatReal * quatK + quatI * quatJ),
                 1.0 - 2.0 * (quatJ * quatJ + quatK * quatK)
             );
 
+            // Convert yaw from radians to degrees
             yaw = yaw * 180.0 / PI;
 
-        constexpr float offset = 90.0;
-        heading = fmod(90.0 - yaw + offset + 360.0, 360.0);
+            // Apply the IMU mounting offset and normalize heading to 0-360 degrees
+            constexpr float mountingOffset = 180.0;
+            heading = fmod(mountingOffset - yaw + 360.0, 360.0);
+
             accuracy = imu.getQuatRadianAccuracy();
         }
     }
 
-    if(imu.wasReset()) {
+    // Re-enable rotation-vector reports if the IMU resets
+    if (imu.wasReset()) {
         imu.enableRotationVector();
     }
 }
