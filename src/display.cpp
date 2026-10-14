@@ -158,7 +158,7 @@ void displayMemberList(const Device& firstDevice, const Device& secondDevice, co
     display.display();
 }
 
-void displayTracking(const Device& selectedDevice, float distance, float bearing, float arrowAngle) {
+void displayTracking(const Device& selectedDevice, float distance, float bearing, float arrowAngle, bool headingWarning) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
@@ -182,6 +182,10 @@ void displayTracking(const Device& selectedDevice, float distance, float bearing
     display.print(arrowAngle, 0);
     display.print(" deg");
 
+    if (headingWarning) {
+        display.print(" !!");
+    }
+    
     drawDirectionArrow(arrowAngle);
 
     // Cardinal direction uses absolute bearing rather than device-relative arrow angle
