@@ -11,12 +11,12 @@ void setup() {
     // Create test packet
     LocationPacket packet = {1, 15, 32.715700, -117.161100, 0};
 
-    // Test createLocationPacket()
+    // Test packet creation
     String data = createLocationPacket(packet);
     Serial.println("Created packet:");
     Serial.println(data);
 
-    // Test parseLocationPacket()
+    // Test parsing a valid packet
     LocationPacket parsedPacket;
 
     if (parseLocationPacket(data, parsedPacket)) {
@@ -36,7 +36,7 @@ void setup() {
         Serial.println("Valid packet FAIL");
     }
 
-    // Test invalid data inside packet
+    // Test invalid packet data
     Serial.println("\nTesting invalid packets:");
 
     if (!parseLocationPacket("LOC,1,15,91.0,-117.0,0", parsedPacket)) {
@@ -55,6 +55,18 @@ void setup() {
         Serial.println("Invalid data PASS");
     } else {
         Serial.println("Invalid data FAIL");
+    }
+
+    if (!parseLocationPacket("LOC,1,-1,32.0,-117.0,0", parsedPacket)) {
+        Serial.println("Negative sequence PASS");
+    } else {
+        Serial.println("Negative sequence FAIL");
+    }
+
+    if (!parseLocationPacket("BAD,1,15,32.0,-117.0,0", parsedPacket)) {
+        Serial.println("Invalid packet type PASS");
+    } else {
+        Serial.println("Invalid packet type FAIL");
     }
 }
 

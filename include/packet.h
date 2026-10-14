@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 
+// Location data exchanged between devices
 struct LocationPacket {
     int source;
     unsigned int sequence;
@@ -10,8 +11,5 @@ struct LocationPacket {
     int hops;
 };
 
-// Creates a location packet string for transmission
 String createLocationPacket(const LocationPacket& packet);
-
-// Parses a received location packet string
 bool parseLocationPacket(const String& data, LocationPacket& packet);
