@@ -5,7 +5,7 @@ constexpr int ENCODER_SW = A0;
 constexpr int ENCODER_DT = A1;
 constexpr int ENCODER_CLK = A2;
 
-constexpr unsigned long DEBOUNCE_TIME = 50;
+constexpr unsigned long DEBOUNCE_TIME_MS = 50;
 
 static volatile int previousEncoderState = 0;
 static volatile int encoderMovement = 0;
@@ -16,6 +16,7 @@ static bool buttonPressed = false;
 static bool buttonPress = false;
 static unsigned long releaseTime = 0;
 
+// Quadrature transition lookup table for determining encoder direction
 static const int transitionTable[16] {
     0, -1, 1, 0,
     1, 0, 0, -1,
@@ -27,12 +28,14 @@ static int getEncoderState() {
     int clk = digitalRead(ENCODER_CLK);
     int dt = digitalRead(ENCODER_DT);
 
+    // Combine CLK and DT into a two-bit encoder state
     return (clk << 1) | dt;
 }
 
 static void encoderISR() {
     int currentEncoderState = getEncoderState();
 
+    // Combine previous and current states to index the quadrature transition table
     int index = (previousEncoderState << 2) | currentEncoderState;
     encoderMovement += transitionTable[index];
 
@@ -51,26 +54,28 @@ void inputInit() {
 }
 
 void inputUpdate() {
-    if(encoderMovement >= 4) {
+    // Four valid quadrature transitions represent one encoder detent
+    if (encoderMovement >= 4) {
         rotation++;
         encoderMovement -= 4;
     }
-    else if(encoderMovement <= -4) {
+    else if (encoderMovement <= -4) {
         rotation--;
         encoderMovement += 4;
     }
 
     bool buttonState = digitalRead(ENCODER_SW);
 
-    if(buttonState == LOW) {
+    if (buttonState == LOW) {
         releaseTime = millis();
 
-        if(!buttonPressed) {
+        if (!buttonPressed) {
             buttonPress = true;
             buttonPressed = true;
         }
     }
-    else if(buttonPressed && millis() - releaseTime >= DEBOUNCE_TIME) {
+    // Require a stable release before allowing another button press
+    else if (buttonPressed && millis() - releaseTime >= DEBOUNCE_TIME_MS) {
         buttonPressed = false;
     }
 }
@@ -83,7 +88,7 @@ int getRotation() {
 }
 
 bool getButtonPress() {
-    if(buttonPress) {
+    if (buttonPress) {
         buttonPress = false;
         return true;
     }

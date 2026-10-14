@@ -5,6 +5,7 @@
 
 static bool displayInitialized = false;
 
+// Replicate the main UI states for display and input testing
 enum Screen {
     STARTUP,
     MEMBER_LIST,
@@ -19,7 +20,7 @@ static Device selectedDevice = firstDevice;
 void setup() {
     Serial.begin(115200);
 
-    while(!Serial) {
+    while (!Serial) {
         delay(10);
     }
 
@@ -30,13 +31,13 @@ void setup() {
     displayInitialized = displayInit();
     inputInit();
 
-    if(displayInitialized) {
+    if (displayInitialized) {
         displayStartup();
     }
 }
 
 void loop() {
-    if(!displayInitialized) {
+    if (!displayInitialized) {
         return;
     }
 
@@ -45,32 +46,33 @@ void loop() {
     int rotation = getRotation();
     bool buttonPress = getButtonPress();
 
-    switch(currentScreen) {
+    switch (currentScreen) {
         case STARTUP:
-            if(buttonPress) {
+            if (buttonPress) {
                 currentScreen = MEMBER_LIST;
                 displayMemberList(firstDevice, secondDevice, selectedDevice);
             }
             break;
 
         case MEMBER_LIST:
-            if(rotation > 0) {
+            if (rotation > 0) {
                 selectedDevice = secondDevice;
                 displayMemberList(firstDevice, secondDevice, selectedDevice);
             }
-            else if(rotation < 0) {
+            else if (rotation < 0) {
                 selectedDevice = firstDevice;
                 displayMemberList(firstDevice, secondDevice, selectedDevice);
             }
 
-            if(buttonPress) {
+            if (buttonPress) {
                 currentScreen = TRACKING;
+                // Use fixed navigation values to verify the tracking display
                 displayTracking(selectedDevice, 150.0, 45.0, 45.0);
             }
             break;
 
         case TRACKING:
-            if(buttonPress) {
+            if (buttonPress) {
                 currentScreen = MEMBER_LIST;
                 displayMemberList(firstDevice, secondDevice, selectedDevice);
             }

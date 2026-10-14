@@ -4,7 +4,7 @@
 void setup() {
     Serial.begin(115200);
 
-    while(!Serial) {
+    while (!Serial) {
         delay(10);
     }
 
@@ -18,14 +18,14 @@ void loop() {
 
     int rotation = getRotation();
 
-    if(rotation > 0) {
+    if (rotation > 0) {
         Serial.println("Clockwise");
     }
-    else if(rotation < 0) {
+    else if (rotation < 0) {
         Serial.println("Counterclockwise");
     }
 
-    if(getButtonPress()) {
+    if (getButtonPress()) {
         Serial.println("Button pressed");
     }
 }

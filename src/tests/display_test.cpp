@@ -7,14 +7,14 @@ static bool displayInitialized = false;
 static unsigned long lastScreenChange = 0;
 static int currentScreen = 0;
 
-const Device firstDevice = {2, "Trevor"};
-const Device secondDevice = {3, "Professor Salemi"};
-const Device selectedDevice = firstDevice;
+static const Device firstDevice = {2, "Trevor"};
+static const Device secondDevice = {3, "Professor Salemi"};
+static const Device selectedDevice = firstDevice;
 
 void setup() {
     Serial.begin(115200);
 
-    while(!Serial) {
+    while (!Serial) {
         delay(10);
     }
 
@@ -24,7 +24,7 @@ void setup() {
 
     displayInitialized = displayInit();
 
-    if(!displayInitialized) {
+    if (!displayInitialized) {
         Serial.println("Display initialization failed");
         return;
     }
@@ -33,18 +33,19 @@ void setup() {
 }
 
 void loop() {
-    if(!displayInitialized) {
+    if (!displayInitialized) {
         return;
     }
 
-    if(millis() - lastScreenChange >= 3000) {
+    // Cycle through each display screen every three seconds
+    if (millis() - lastScreenChange >= 3000) {
         currentScreen++;
 
-        if(currentScreen >4) {
+        if (currentScreen >4) {
             currentScreen = 0;
         }
 
-        switch(currentScreen) {
+        switch (currentScreen) {
             case 0:
                 displayStartup();
                 break;
