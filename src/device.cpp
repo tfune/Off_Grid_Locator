@@ -316,7 +316,12 @@ void deviceUpdate() {
                 float heading = imuGetHeading();
                 float arrowAngle = calculateArrowAngle(result.bearing, heading);
 
-                displayTracking(selectedDevice, result.distance, result.bearing, arrowAngle);
+                constexpr float imuWarningRad = 5 * PI / 180;
+
+                float headingAccuracy = imuGetAccuracy();
+                bool headingWarning = !isfinite(headingAccuracy) || headingAccuracy > imuWarningRad;
+
+                displayTracking(selectedDevice, result.distance, result.bearing, arrowAngle, headingWarning);
 
                 break;
             }
