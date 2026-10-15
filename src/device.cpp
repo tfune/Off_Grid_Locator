@@ -307,7 +307,10 @@ void deviceUpdate() {
                 // Calculate the selected member's distance and bearing
                 NavigationResult result = calculateNavigation(currentCoordinates, targetCoordinates);
 
-                if (!result.bearingValid) {
+                constexpr double proxDistance = 25;
+                bool withinProximity = result.distance <= proxDistance;
+
+                if (!result.bearingValid && !withinProximity) {
                     displayLocationUnavailable();
                     break;
                 }
@@ -321,7 +324,7 @@ void deviceUpdate() {
                 float headingAccuracy = imuGetAccuracy();
                 bool headingWarning = !isfinite(headingAccuracy) || headingAccuracy > imuWarningRad;
 
-                displayTracking(selectedDevice, result.distance, result.bearing, arrowAngle, headingWarning);
+                displayTracking(selectedDevice, result.distance, result.bearing, arrowAngle, headingWarning, withinProximity);
 
                 break;
             }
