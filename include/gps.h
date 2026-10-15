@@ -7,7 +7,7 @@ struct GPSData {
     int time;
 };
 
-void gpsInit();
+bool gpsInit();
 void gpsUpdate();
 GPSData gpsGetData();
 bool gpsHasFreshFix(unsigned long now, unsigned long timeStamp);
