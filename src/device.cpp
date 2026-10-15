@@ -80,6 +80,7 @@ void deviceInit() {
     loraInitialized = loraInit(DEVICE_ID);
     inputInit();
 
+    // Identify the first component that failed initialization
     if (!displayInitialized) {
         initializationFailed = true;
         failedComponent = "Display";

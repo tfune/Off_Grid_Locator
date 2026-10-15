@@ -18,8 +18,9 @@ bool gpsInit()
     gps.sendCommand(PMTK_SET_NMEA_UPDATE_10HZ);
 
     unsigned long startTime = millis();
+    constexpr unsigned long GPS_INIT_TIMEOUT_MS = 5000;
 
-    while (millis() - startTime < 5000) {
+    while (millis() - startTime < GPS_INIT_TIMEOUT_MS) {
         gpsUpdate();
 
         if (gpsIsCommunicating()) {
