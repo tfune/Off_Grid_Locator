@@ -214,7 +214,7 @@ void displayLocationUnavailable() {
     display.display();
 }
 
-void displayInitializationError() {
+void displayInitializationError(const char* component) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
@@ -223,7 +223,8 @@ void displayInitializationError() {
     display.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
     display.setCursor(0, 18);
-    display.print("Initialization failed");
+    display.print(component);
+    display.print(" init failed");
 
     display.setCursor(0, 38);
     display.print("Reset device to retry");
