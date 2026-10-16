@@ -16,9 +16,13 @@
 // Battery display refresh timing
 static unsigned long lastBatteryDisplay = 0;
 
-// Track initialization of components required for the UI
+// Track initialization of required components
 static bool displayInitialized = false;
+static bool gpsInitialized = false;
 static bool imuInitialized = false;
+static bool loraInitialized = false;
+static bool initializationFailed = false;
+static const char* failedComponent = nullptr;
 
 // User interface states
 enum Screen {
@@ -54,12 +58,10 @@ void deviceInit() {
     if (DEVICE_ID == 1) {
         firstDevice = devices[1];
         secondDevice = devices[2];
-    }
-    else if (DEVICE_ID == 2) {
+    } else if (DEVICE_ID == 2) {
         firstDevice = devices[0];
         secondDevice = devices[2];
-    }
-    else {
+    } else {
         firstDevice = devices[0];
         secondDevice = devices[1];
     }
@@ -73,15 +75,33 @@ void deviceInit() {
     lastBatteryDisplay = millis();
 
     displayInitialized = displayInit();
-    gpsInit();
+    gpsInitialized = gpsInit();
     imuInitialized = imuInit();
+    loraInitialized = loraInit(DEVICE_ID);
     inputInit();
 
-    if (displayInitialized) {
-        displayStartup();
+    // Identify the first component that failed initialization
+    if (!displayInitialized) {
+        initializationFailed = true;
+        failedComponent = "Display";
+    } else if (!gpsInitialized) {
+        initializationFailed = true;
+        failedComponent = "GPS";
+    } else if (!imuInitialized) {
+        initializationFailed = true;
+        failedComponent = "IMU";
+    } else if (!loraInitialized) {
+        initializationFailed = true;
+        failedComponent = "LoRa";
     }
 
-    loraInit(DEVICE_ID);
+    if (displayInitialized) {
+        if (initializationFailed) {
+            displayInitializationError(failedComponent);
+        } else {
+            displayStartup();
+        }
+    }
 
     randomSeed(DEVICE_ID);
 
@@ -232,6 +252,10 @@ static void sendLocation() {
 }
 
 void deviceUpdate() {
+    if (initializationFailed) {
+        return;
+    }
+
     // Update background hardware and location-sharing tasks
     batteryUpdate();
     gpsUpdate();
@@ -242,92 +266,87 @@ void deviceUpdate() {
     const unsigned long now = millis();
 
     // Refresh the battery indicator once per minute
-    if (displayInitialized && now - lastBatteryDisplay >= 60000) {
+    if (now - lastBatteryDisplay >= 60000) {
         lastBatteryDisplay = now;
         displayRefreshBattery();
     }
 
     // Process user input and update the active UI screen
-    if (displayInitialized && imuInitialized) {
-        imuUpdate();
-        inputUpdate();
+    imuUpdate();
+    inputUpdate();
 
-        int rotation = getRotation();
-        bool buttonPress = getButtonPress();
+    int rotation = getRotation();
+    bool buttonPress = getButtonPress();
 
-        switch (currentScreen) {
-            case STARTUP:
-                if (buttonPress) {
-                    currentScreen = MEMBER_LIST;
-                    displayMemberList(firstDevice, secondDevice, selectedDevice);
-                }
-                break;
+    switch (currentScreen) {
+        case STARTUP:
+            if (buttonPress) {
+                currentScreen = MEMBER_LIST;
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
+            }
+            break;
 
-            case MEMBER_LIST:
-                if (rotation > 0) {
-                    selectedDevice = secondDevice;
-                    displayMemberList(firstDevice, secondDevice, selectedDevice);
-                }
-                else if (rotation < 0) {
-                    selectedDevice = firstDevice;
-                    displayMemberList(firstDevice, secondDevice, selectedDevice);
-                }
+        case MEMBER_LIST:
+            if (rotation > 0) {
+                selectedDevice = secondDevice;
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
+            }
+            else if (rotation < 0) {
+                selectedDevice = firstDevice;
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
+            }
 
-                if (buttonPress) {
-                    currentScreen = TRACKING;
-                }
-                break;
+            if (buttonPress) {
+                currentScreen = TRACKING;
+            }
+            break;
 
-            case TRACKING: {
-                if (buttonPress) {
-                    currentScreen = MEMBER_LIST;
-                    displayMemberList(firstDevice, secondDevice, selectedDevice);
-                    break;
-                }
-
-                GPSData gpsData = gpsGetData();
-
-                // Tracking requires a recent GPS fix from this device
-                if (!gpsHasFreshFix(now, 3000)) {
-                    displayLocationUnavailable();
-                    break;
-                }
-                
-                Coordinates currentCoordinates = {gpsData.latitude, gpsData.longitude};
-                Coordinates targetCoordinates;
-
-                // Received locations older than 30 secs are no longer valid for tracking
-                constexpr unsigned long LOCATION_MAX_AGE_MS = 30000;
-
-                if (!targetGet(selectedDevice.id, targetCoordinates, now, LOCATION_MAX_AGE_MS)) {
-                    displayLocationUnavailable();
-                    break;
-                }
-
-                // Calculate the selected member's distance and bearing
-                NavigationResult result = calculateNavigation(currentCoordinates, targetCoordinates);
-
-                constexpr double proxDistance = 25;
-                bool withinProximity = result.distance <= proxDistance;
-
-                if (!result.bearingValid && !withinProximity) {
-                    displayLocationUnavailable();
-                    break;
-                }
-
-                // Convert absolute bearing into arrow angle relative to device heading
-                float heading = imuGetHeading();
-                float arrowAngle = calculateArrowAngle(result.bearing, heading);
-
-                constexpr float imuWarningRad = 5 * PI / 180;
-
-                float headingAccuracy = imuGetAccuracy();
-                bool headingWarning = !isfinite(headingAccuracy) || headingAccuracy > imuWarningRad;
-
-                displayTracking(selectedDevice, result.distance, result.bearing, arrowAngle, headingWarning, withinProximity);
-
+        case TRACKING: {
+            if (buttonPress) {
+                currentScreen = MEMBER_LIST;
+                displayMemberList(firstDevice, secondDevice, selectedDevice);
                 break;
             }
+
+            GPSData gpsData = gpsGetData();
+
+            // Tracking requires a recent GPS fix from this device
+            if (!gpsHasFreshFix(now, 3000)) {
+                displayLocationUnavailable();
+                break;
+            }
+            
+            Coordinates currentCoordinates = {gpsData.latitude, gpsData.longitude};
+            Coordinates targetCoordinates;
+
+            // Received locations older than 30 secs are no longer valid for tracking
+            constexpr unsigned long LOCATION_MAX_AGE_MS = 30000;
+
+            if (!targetGet(selectedDevice.id, targetCoordinates, now, LOCATION_MAX_AGE_MS)) {
+                displayLocationUnavailable();
+                break;
+            }
+
+            // Calculate the selected member's distance and bearing
+            NavigationResult result = calculateNavigation(currentCoordinates, targetCoordinates);
+
+            if (!result.bearingValid) {
+                displayLocationUnavailable();
+                break;
+            }
+
+            // Convert absolute bearing into arrow angle relative to device heading
+            float heading = imuGetHeading();
+            float arrowAngle = calculateArrowAngle(result.bearing, heading);
+
+            constexpr float imuWarningRad = 5 * PI / 180;
+
+            float headingAccuracy = imuGetAccuracy();
+            bool headingWarning = !isfinite(headingAccuracy) || headingAccuracy > imuWarningRad;
+
+            displayTracking(selectedDevice, result.distance, result.bearing, arrowAngle, headingWarning);
+
+            break;
         }
     }
 }

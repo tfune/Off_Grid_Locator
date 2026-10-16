@@ -11,11 +11,24 @@ static bool filterReady = false;
 constexpr double gpsAlpha = 0.3;
 constexpr unsigned long filtRstGap = 3000;
 
-void gpsInit()
+bool gpsInit()
 {
     gps.begin(9600);
     gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
     gps.sendCommand(PMTK_SET_NMEA_UPDATE_10HZ);
+
+    unsigned long startTime = millis();
+    constexpr unsigned long GPS_INIT_TIMEOUT_MS = 5000;
+
+    while (millis() - startTime < GPS_INIT_TIMEOUT_MS) {
+        gpsUpdate();
+
+        if (gpsIsCommunicating()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void gpsUpdate()
