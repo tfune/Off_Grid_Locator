@@ -158,7 +158,7 @@ void displayMemberList(const Device& firstDevice, const Device& secondDevice, co
     display.display();
 }
 
-void displayTracking(const Device& selectedDevice, float distance, float bearing, float arrowAngle, bool headingWarning) {
+void displayTracking(const Device& selectedDevice, float distance, float bearing, float arrowAngle, bool headingWarning, bool withinProximity) {
     display.clearDisplay();
 
     display.setCursor(0, 0);
@@ -175,25 +175,29 @@ void displayTracking(const Device& selectedDevice, float distance, float bearing
     display.print(distance, 0);
     display.print(" m");
 
-    display.setCursor(0, 39);
-    display.print("Direction:");
+    if (withinProximity) {
+        display.setCursor(0, 43);
+        display.print("Within proximity");
+    } else {    
+        display.setCursor(0, 39);
+        display.print("Direction:");
+        display.setCursor(0, 49);
+        display.print(arrowAngle, 0);
+        display.print(" deg");
 
-    display.setCursor(0, 49);
-    display.print(arrowAngle, 0);
-    display.print(" deg");
-
-    if (headingWarning) {
+        if (headingWarning) {
         display.print(" !!");
+        }
+
+        drawDirectionArrow(arrowAngle);
+
+        // Cardinal direction uses absolute bearing rather than device-relative arrow angle
+        display.setCursor(92, 52);
+        display.print(getCardinalDirection(bearing));
     }
+        drawBatteryIcon();
+        display.display();
     
-    drawDirectionArrow(arrowAngle);
-
-    // Cardinal direction uses absolute bearing rather than device-relative arrow angle
-    display.setCursor(92, 52);
-    display.print(getCardinalDirection(bearing));
-
-    drawBatteryIcon();
-    display.display();
 }
 
 void displayLocationUnavailable() {
