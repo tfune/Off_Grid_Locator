@@ -188,16 +188,6 @@ void displayTracking(const Device& selectedDevice, float distance, float bearing
         if (headingWarning) {
         display.print(" !!");
         }
-        display.setCursor(0, 39);
-        display.print("Direction:");
-
-        display.setCursor(0, 49);
-        display.print(arrowAngle, 0);
-        display.print(" deg");
-
-        if (headingWarning) {
-        display.print(" !!");
-        }
 
         drawDirectionArrow(arrowAngle);
 
