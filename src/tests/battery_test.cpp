@@ -1,117 +1,63 @@
 #include <Arduino.h>
-#include <Adafruit_TinyUSB.h>
 #include <Wire.h>
-#include "display.h"
-#include "input.h"
+#include <Adafruit_SH110X.h>
 #include "battery.h"
-#include "device.h"
 
-static bool displayInitialized = false;
+static Adafruit_SH1106G oled(128, 64, &Wire);
+static bool displayReady = false;
 
-enum Screen {
-    STARTUP,
-    MEMBER_LIST,
-    TRACKING
-};
+static void showBattery() {
+    oled.clearDisplay();
+    oled.setTextSize(1);
+    oled.setTextColor(SH110X_WHITE);
 
-static Screen currentScreen = STARTUP;
+    oled.setCursor(0, 0);
+    oled.print("BATTERY TEST");
+    oled.drawLine(0, 10, 127, 10, SH110X_WHITE);
 
-const Device firstDevice = {2, "Trevor"};
-const Device secondDevice = {3, "Professor Salemi"};
-Device selectedDevice = firstDevice;
+    oled.setCursor(0, 18);
+    oled.print("Voltage: ");
+    oled.print(batteryGetVoltage(), 2);
+    oled.print(" V");
+
+    oled.setCursor(0, 30);
+    oled.print("Level: ");
+    oled.print(batteryGetLevel());
+    oled.print("/4");
+
+    oled.setCursor(0, 42);
+    oled.print("Uptime: ");
+    oled.print(millis() / 1000UL);
+    oled.print(" s");
+
+    oled.setCursor(0, 54);
+    oled.print("Sample period: 30 s");
+
+    // Transfer the drawing buffer to the physical OLED.
+    oled.display();
+}
 
 void setup() {
-    Serial.begin(115200);
-
     Wire.begin();
-
     batteryInit();
-    displayInitialized = displayInit();
-    inputInit();
 
-    if(displayInitialized) {
-        displayStartup();
+    displayReady = oled.begin(0x3C);
+
+    if (displayReady) {
+        showBattery();
     }
 }
 
 void loop() {
-    static bool serialAnnounced = false;
-    static unsigned long lastHeartbeat = 0;
-    const unsigned long heartbeatNow = millis();
+    // Continue sampling even if display initialization failed.
+    const bool newSample = batteryUpdate();
 
-    if (Serial) {
-        if (!serialAnnounced) {
-            Serial.println("Battery test connected");
-            serialAnnounced = true;
-        }
-
-        if (heartbeatNow - lastHeartbeat >= 1000) {
-            lastHeartbeat = heartbeatNow;
-            Serial.print("Battery test running, cached voltage: ");
-            Serial.println(batteryGetVoltage(), 2);
-        }
-    } else {
-        serialAnnounced = false;
-    }
-    
-    static unsigned long lastBatteryDisplay = 0;
-
-    if (batteryUpdate() && Serial) {
-        Serial.print("Battery sampled at ");
-        Serial.print(millis() / 1000);
-        Serial.print(" s: ");
-        Serial.println(batteryGetVoltage(), 2);
-    }
-
+    static unsigned long lastRefresh = 0;
     const unsigned long now = millis();
 
-    if (displayInitialized && now - lastBatteryDisplay >= 60000) {
-        lastBatteryDisplay = now;
-        displayRefreshBattery();
-
-        if (Serial) {
-            Serial.println("Battery icon refreshed");
-        }
-    }
-   
-    if(!displayInitialized) {
-        return;
-    }
-
-    inputUpdate();
-
-    int rotation = getRotation();
-    bool buttonPress = getButtonPress();
-
-    switch(currentScreen) {
-        case STARTUP:
-            if(buttonPress) {
-                currentScreen = MEMBER_LIST;
-                displayMemberList(firstDevice, secondDevice, selectedDevice);
-            }
-            break;
-
-        case MEMBER_LIST:
-            if(rotation > 0) {
-                selectedDevice = secondDevice;
-                displayMemberList(firstDevice, secondDevice, selectedDevice);
-            }
-            else if(rotation < 0) {
-                selectedDevice = firstDevice;
-                displayMemberList(firstDevice, secondDevice, selectedDevice);
-            }
-
-            if(buttonPress) {
-                currentScreen = TRACKING;
-                displayTracking(selectedDevice, 150.0, 45.0, 45.0);
-            }
-            break;
-
-        case TRACKING:
-            if(buttonPress) {
-                currentScreen = MEMBER_LIST;
-                displayMemberList(firstDevice, secondDevice, selectedDevice);
-            }
-            break;
+    if (displayReady &&
+        (newSample || now - lastRefresh >= 1000UL)) {
+        lastRefresh = now;
+        showBattery();
     }
 }
