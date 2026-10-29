@@ -63,7 +63,7 @@ void loop() {
                 break;
 
             case 4:
-                displayInitializationError();
+                displayInitializationError("IMU");
                 break;
         }
 
