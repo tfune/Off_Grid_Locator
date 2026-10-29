@@ -1,8 +1,44 @@
 #include <Arduino.h>
 #include <Adafruit_TinyUSB.h>
+#include <Wire.h>
+#include <Adafruit_SH110X.h>
 #include "lora.h"
 
-#define deviceAddress 2 // Load device B (2) and then change address and load to device A (1) to test the echo functionality.
+#define deviceAddress 1 // Load device B (2) and then change address and load to device A (1) to test the echo functionality.
+
+static Adafruit_SH1106G oled(128, 64, &Wire);
+static bool displayReady = false;
+
+static void showStatus(const String& status,
+                       const String& detail = "",
+                       unsigned int replies = 0) {
+    if (!displayReady) return;
+
+    oled.clearDisplay();
+    oled.setTextSize(1);
+    oled.setTextColor(SH110X_WHITE);
+
+    oled.setCursor(0, 0);
+    oled.print("LORA TEST - ");
+    oled.print(deviceAddress == 1 ? "A" : "B");
+
+    oled.drawLine(0, 10, 127, 10, SH110X_WHITE);
+
+    oled.setCursor(0, 16);
+    oled.print(status);
+
+    oled.setCursor(0, 30);
+    oled.print(detail);
+
+    if (deviceAddress == 1) {
+        oled.setCursor(0, 46);
+        oled.print("Replies: ");
+        oled.print(replies);
+        oled.print("/10");
+    }
+
+    oled.display();
+}
 
 #if deviceAddress != 1 && deviceAddress != 2
 #error "deviceAddress must be 1 or 2"
@@ -10,67 +46,58 @@
 
 static bool radioReady = false;
 
-void setup()
-{
-    Serial.begin(115200);
+void setup() {
+    Wire.begin();
+    displayReady = oled.begin(0x3C);
 
-    while (!Serial) {
-        delay(10);
-    }
-
-    Serial.print("Echo test version 2 — Device ");
-    Serial.println(deviceAddress == 1 ? "A" : "B");
+    showStatus("Initializing...");
 
     radioReady = loraInit(deviceAddress);
 
-    if (Serial) {
-        Serial.println(
-            radioReady ? "LoRa initialized" : "LoRa initialization failed"
-        );
-    }
+    showStatus(
+        radioReady ? "Radio ready" : "Radio init FAILED",
+        deviceAddress == 1 ? "Starting test..." : "Waiting for A..."
+    );
 }
 
-void loop()
-{
-    delay(5);
+void loop() {
     loraUpdate();
 
 #if deviceAddress == 1
     static unsigned int packetNumber = 1;
-    static unsigned int repliesReceived = 0;    
+    static unsigned int repliesReceived = 0;
     static bool waitingForReply = false;
     static bool finished = false;
     static String expectedReply;
     static unsigned long sentAt = 0;
 
-    if(finished) return;
+    if (finished) return;
 
     if (!radioReady) {
-        Serial.println("FAIL: A radio initialization failed");
+        showStatus("FAIL", "Radio init failed");
         finished = true;
         return;
     }
 
-    if (!waitingForReply && (packetNumber == 1 || millis() - sentAt >= 1000)) {
-        
+    if (!waitingForReply &&
+        (packetNumber == 1 || millis() - sentAt >= 1000)) {
+
         LoRaMessage oldMessage;
         loraReceive(oldMessage);
 
         expectedReply = "TEST";
         expectedReply += packetNumber;
 
-        Serial.print("A sending: ");
-        Serial.println(expectedReply);
-
+        showStatus("Sending", expectedReply, repliesReceived);
         sentAt = millis();
 
-        bool accepted = loraSend(2, expectedReply);
-        
-        if (accepted) {
+        if (loraSend(2, expectedReply)) {
             waitingForReply = true;
-        }
-        else {
-            Serial.println("FAIL: local send acknowledgment");
+            showStatus("Waiting for echo", expectedReply,
+                       repliesReceived);
+        } else {
+            showStatus("Send rejected", expectedReply,
+                       repliesReceived);
             packetNumber++;
         }
     }
@@ -82,31 +109,23 @@ void loop()
             message.sender == 2 &&
             message.payload == (String("ACK:") + expectedReply)) {
 
-            Serial.print("A received: ");
-            Serial.println(message.payload);
-
             repliesReceived++;
             packetNumber++;
             waitingForReply = false;
-        }
-        else if (millis() - sentAt >= 5000) {
-            Serial.print("TIMEOUT: ");
-            Serial.println(expectedReply);
- 
+
+            showStatus("Reply received", message.payload,
+                       repliesReceived);
+        } else if (millis() - sentAt >= 5000) {
             packetNumber++;
             waitingForReply = false;
+
+            showStatus("TIMEOUT", expectedReply, repliesReceived);
         }
     }
 
     if (packetNumber > 10) {
-        Serial.print("Echoes received: ");
-        Serial.print(repliesReceived);
-        Serial.println("/10");
-
-        Serial.println(
-            repliesReceived == 10 ? "PASS" : "FAIL"
-        );
-
+        showStatus(repliesReceived == 10 ? "PASS" : "FAIL",
+                   "Test complete", repliesReceived);
         finished = true;
     }
 
@@ -116,29 +135,23 @@ void loop()
     LoRaMessage message;
 
     if (loraReceive(message) && message.sender == 1) {
-        // Accept only the ten exact test messages.
         bool validPacket = false;
 
         for (unsigned int number = 1; number <= 10; number++) {
-            String expected = "TEST";
-            expected += number;
-
-            if (message.payload == expected) {
+            if (message.payload == (String("TEST") + number)) {
                 validPacket = true;
                 break;
             }
         }
 
         if (validPacket) {
-            Serial.print("B received: ");
-            Serial.println(message.payload);
-            Serial.flush();
+            showStatus("Received", message.payload);
 
-            String reply = "ACK:";
-            reply += message.payload;
+            String reply = String("ACK:") + message.payload;
             bool accepted = loraSend(1, reply);
-            Serial.println(accepted ? "Echo accepted" : "Echo failed");
-            Serial.flush();
+
+            showStatus(accepted ? "Echo accepted" : "Echo failed",
+                       reply);
         }
     }
 #endif
