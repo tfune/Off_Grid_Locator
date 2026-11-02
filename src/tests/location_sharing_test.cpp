@@ -24,6 +24,8 @@ struct ReceivedLocation {
     unsigned long receivedAt;
     int rssi;
     int snr;
+    uint16_t via;
+    uint8_t hops;
     bool available;
 };
 
@@ -37,6 +39,10 @@ static unsigned int sequence = 0;
 static unsigned long lastSend = 0;
 static unsigned long sendInterval = 2000;
 static unsigned long lastDisplay = 0;
+
+static bool relayPending = false;
+static LocationPacket relayPacket;
+static unsigned long relayTime = 0;
 
 static int findDevice(uint16_t id) {
     for (unsigned int i = 0; i < DEVICE_COUNT; ++i) {
@@ -107,25 +113,48 @@ static void receiveLocations() {
             continue;
         }
 
-        int index = findDevice(message.sender);
+        // Device 1 cannot receive Device 3 directly
+        if (DEVICE_ID == 1 && message.sender == 3) {
+            continue;
+        }
+
+        int index = findDevice(packet.source);
 
         if (index < 0 ||
-            message.sender == DEVICE_ID ||
-            packet.source != message.sender ||
-            packet.hops != 0 ||
+            packet.source == DEVICE_ID ||
+            packet.hops > 1 || 
+            (packet.hops == 0 && packet.source != message.sender) ||
+            (packet.hops == 1 && packet.source == message.sender) ||
             !isfinite(packet.latitude) ||
             !isfinite(packet.longitude)) {
             continue;
         }
 
         ReceivedLocation& location = received[index];
+
+        if (location.available &&
+            packet.sequence <= location.sequence &&
+            millis() - location.receivedAt < 10000) {
+            continue;
+        }
+
         location.latitude = packet.latitude;
         location.longitude = packet.longitude;
         location.sequence = packet.sequence;
         location.receivedAt = millis();
         location.rssi = message.rssi;
         location.snr = message.snr;
+        location.via = message.sender;
+        location.hops = packet.hops;
         location.available = true;
+
+        // Relay directly received location packets
+        if (packet.hops == 0 && !relayPending) {
+            relayPacket = packet;
+            relayPacket.hops = 1;
+            relayTime = millis() + random(100, 301);
+            relayPending = true;
+        }
 
         if (Serial) {
             Serial.print("RX ");
@@ -146,6 +175,17 @@ static void receiveLocations() {
             Serial.println(local.longitude, 6);
         }
     }
+}
+
+static void sendRelay() {
+    if (!loraIsInitialized() ||
+        !relayPending ||
+        millis() < relayTime) {
+        return;
+    }
+
+    loraSend(0, createLocationPacket(relayPacket));
+    relayPending = false;
 }
 
 static void updateDisplay() {
@@ -187,10 +227,10 @@ static void updateDisplay() {
         oled.print(age / 1000);
         oled.println("s");
 
-        oled.print("RSSI:");
-        oled.print(location.rssi);
-        oled.print(" SNR:");
-        oled.println(location.snr);
+        oled.print("Via:");
+        oled.print(location.via);
+        oled.print(" Hops:");
+        oled.println(location.hops);
 
         if (age > 30000) {
             oled.println("STALE");
@@ -242,6 +282,7 @@ void loop() {
     // Consume button events; this test uses rotation only.
     getButtonPress();
 
+    sendRelay();
     sendLocation();
     updateDisplay();
 }
